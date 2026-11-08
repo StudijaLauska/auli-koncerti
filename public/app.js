@@ -161,7 +161,7 @@ function renderPick(app) {
     <div class="center"><div class="panel">
       <h1>Kas tu esi?</h1>
       <p>Izvēlies savu vārdu. Šajā ierīcē tas tiks atcerēts.</p>
-      <div class="pick">${byRole(members).map(([role, ms]) => `${role ? `<div class="pick-role">${esc(role)}</div>` : ''}${ms.map((m) => `<button data-id="${esc(m.id)}">${esc(m.name)}</button>`).join('')}`).join('')}</div>
+      <div class="pick">${byRole(members).map(([role, ms]) => `${role ? `<div class="pick-role">${esc(role)}</div>` : ''}<div class="pick-grid">${ms.map((m) => `<button data-id="${esc(m.id)}">${avatar(m, 'big')}<span>${esc(m.name)}</span></button>`).join('')}</div>`).join('')}</div>
       ${members.length ? '' : '<p>Dalībnieku saraksts vēl ir tukšs. Pievieno dalībniekus iestatījumos.</p><button class="btn primary" id="settings">Iestatījumi</button>'}
     </div></div>`;
   app.querySelectorAll('.pick button').forEach((b) => (b.onclick = () => { state.me = b.dataset.id; LS.set('auli.me', state.me); render(); }));
@@ -178,6 +178,20 @@ function byRole(members) {
   }
   return [...groups];
 }
+// Member photo: public/img/m/<id>.jpg (the preview passes data URIs). Falls back to initials.
+const initials = (name) => name.split(/\s+/).map((w) => w[0]).slice(0, 2).join('').toUpperCase();
+function avatar(m, cls = '') {
+  const src = window.MEMBER_PHOTOS ? window.MEMBER_PHOTOS[m.id] : `img/m/${encodeURIComponent(m.id)}.jpg`;
+  return `<span class="av ${cls}" title="${esc(m.name)}">${esc(initials(m.name))}${src ? `<img src="${esc(src)}" alt="" loading="lazy" onerror="this.remove()">` : ''}</span>`;
+}
+// Everyone's face on the card: in colour if coming, faded if not, outlined if no answer yet.
+function faces(ev) {
+  const order = { yes: 0, '': 1, maybe: 1, no: 2 };
+  const list = state.data.members
+    .map((m) => ({ m, ans: answerOf(m.id, ev.id) }))
+    .sort((a, b) => order[a.ans.a || ''] - order[b.ans.a || '']);
+  return `<div class="faces">${list.map(({ m, ans }) => avatar(m, `f-${ans.a === 'yes' || ans.a === 'no' ? ans.a : 'none'}${ans.note ? ' has-note' : ''}${m.id === state.me ? ' me' : ''}`)).join('')}</div>`;
+}
 const plural = (n, one, many) => (n % 10 === 1 && n % 100 !== 11 ? one : many);
 
 const ICON = {
@@ -193,7 +207,7 @@ function renderMain(app) {
   app.innerHTML = `
     <header class="top"><div class="wrap ${state.mode === 'table' ? 'wide' : ''}">
       <div class="brand"><img src="icon.svg" alt="">Auļu koncerti</div>
-      <button class="who" id="who" title="Mainīt">${esc(me.name)}</button>
+      <button class="who" id="who" title="Mainīt">${avatar(me, 'sm')}<span>${esc(me.name)}</span></button>
       <button class="icon-btn" id="settings" aria-label="Iestatījumi">${ICON.gear}</button>
     </div></header>
     <main class="wrap ${state.mode === 'table' ? 'wide' : ''}">
@@ -262,6 +276,7 @@ function cardHtml(ev) {
           ${t[''] + t.maybe && ev.status !== 'cancelled' ? `<span class="missing">${t[''] + t.maybe} nav atbildējuši</span>` : ''}
         </div>
       </div>
+      ${faces(ev)}
     </div>
     <div class="mine" role="group" aria-label="Mana atbilde">
       ${['yes', 'no'].map((a) => `<button class="${a}" data-act="answer" data-a="${a}" aria-pressed="${mine.a === a}">${ANS[a].label}</button>`).join('')}
@@ -296,7 +311,7 @@ function detailsHtml(ev) {
     <div class="details">
       <dl>${rows.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('')}</dl>
       <ul class="people">
-        ${people.map(({ m, ans }) => `<li><span class="dot ${ans.a || 'none'}">${ANS[ans.a || ''].sym}</span><span>${esc(m.name)}${ans.note ? ` <span class="note">– ${esc(ans.note)}</span>` : ''}</span></li>`).join('')}
+        ${people.map(({ m, ans }) => `<li><span class="pav">${avatar(m, `f-${ans.a === 'yes' || ans.a === 'no' ? ans.a : 'none'}`)}<span class="dot ${ans.a || 'none'}">${ANS[ans.a || ''].sym}</span></span><span>${esc(m.name)}${ans.note ? ` <span class="note">– ${esc(ans.note)}</span>` : ''}</span></li>`).join('')}
       </ul>
       <div class="row-actions">
         <button class="btn" data-act="edit">Labot pasākumu</button>

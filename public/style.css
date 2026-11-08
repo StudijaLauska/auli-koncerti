@@ -214,3 +214,34 @@ table.grid tr.roles th { font-size: .75rem; text-transform: uppercase; letter-sp
 table.grid .g { border-left: 2px solid var(--line); }
 table.grid td.has-note { position: relative; cursor: pointer; }
 table.grid td.has-note::after { content: ""; position: absolute; top: 0; right: 0; border: 5px solid transparent; border-top-color: var(--accent); border-right-color: var(--accent); }
+
+/* Member photos */
+.av {
+  position: relative; display: inline-grid; place-items: center; flex: none; overflow: hidden;
+  width: 30px; height: 30px; border-radius: 50%; background: var(--surface-2); color: var(--muted);
+  font-size: .7rem; font-weight: 700; letter-spacing: .02em;
+}
+.av img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.av.sm { width: 24px; height: 24px; font-size: .6rem; }
+.av.big { width: 64px; height: 64px; font-size: 1.1rem; }
+.who { display: inline-flex; align-items: center; gap: 8px; padding: 4px 12px 4px 4px; }
+.who span { overflow: hidden; text-overflow: ellipsis; }
+.faces { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 5px 0; padding-left: 3px; }
+.faces .av, .faces .av.f-yes, .faces .av.f-none { margin: 0 3px 0 0; }
+.faces .av.f-yes { margin-right: 5px; }
+.faces .av { margin-left: -4px; box-shadow: 0 0 0 2px var(--surface); }
+.faces .av.f-yes { box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--yes); margin-right: 3px; margin-left: 0; }
+.faces .av.f-no img { filter: grayscale(1); opacity: .35; }
+.faces .av.f-no { opacity: .55; }
+.faces .av.f-none img { filter: grayscale(1); opacity: .6; }
+.faces .av.f-none { box-shadow: 0 0 0 2px var(--surface), 0 0 0 3px var(--line); margin: 0 2px; }
+.faces .av.has-note::after { content: ""; position: absolute; right: 0; top: 0; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 1.5px var(--surface); }
+.pav { position: relative; flex: none; }
+.pav .av { width: 34px; height: 34px; }
+.pav .av.f-no img { filter: grayscale(1); opacity: .5; }
+.pav .dot { position: absolute; right: -4px; bottom: -3px; width: 16px; height: 16px; font-size: .6rem; box-shadow: 0 0 0 2px var(--surface); }
+.people li { gap: 12px; padding: 4px 0; }
+.pick-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 8px; }
+.pick .pick-grid button { display: grid; justify-items: center; gap: 6px; text-align: center; padding: 12px 6px; font-size: .85rem; line-height: 1.2; }
+.pick .pick-grid button:hover .av { box-shadow: 0 0 0 2px var(--accent); }
+@media (max-width: 480px) { .faces .av { width: 25px; height: 25px; font-size: .58rem; } }
