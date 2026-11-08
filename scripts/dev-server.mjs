@@ -16,7 +16,7 @@ const store = {
   async delete(k) { delete db[k]; await save(); },
   async list({ prefix = '' } = {}) { return { blobs: Object.keys(db).filter((k) => k.startsWith(prefix)).map((key) => ({ key })) }; },
 };
-const env = { BAND_PASSWORD: process.env.BAND_PASSWORD || 'test' };
+const env = { BAND_PASSWORD: process.env.BAND_PASSWORD || '' };
 const types = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml', '.webmanifest': 'application/manifest+json', '.png': 'image/png' };
 
 http.createServer(async (req, res) => {
@@ -34,4 +34,4 @@ http.createServer(async (req, res) => {
     res.writeHead(200, { 'content-type': types[path.extname(file)] || 'application/octet-stream' });
     res.end(data);
   } catch { res.writeHead(404); res.end('Not found'); }
-}).listen(8888, () => console.log('http://localhost:8888  (parole: ' + env.BAND_PASSWORD + ')'));
+}).listen(8888, () => console.log('http://localhost:8888' + (env.BAND_PASSWORD ? '  (parole: ' + env.BAND_PASSWORD + ')' : '')));
