@@ -179,9 +179,17 @@ function byRole(members) {
   return [...groups];
 }
 // Member initials in a circle.
-const initials = (name) => name.split(/\s+/).map((w) => w[0]).slice(0, 2).join('').toUpperCase();
+// Three members are "E. K.", so clashing initials get a second surname letter (EKā, EKu, EKr).
+function initials(m) {
+  const parts = (n) => n.trim().split(/\s+/);
+  const base = (n) => parts(n).map((w) => w[0]).slice(0, 2).join('').toUpperCase();
+  const mine = base(m.name);
+  const clash = state.data?.members.some((o) => o.id !== m.id && base(o.name) === mine);
+  const p = parts(m.name);
+  return clash && p[1] ? mine + (p[1][1] || '') : mine;
+}
 function avatar(m, cls = '') {
-  return `<span class="av ${cls}" title="${esc(m.name)}">${esc(initials(m.name))}</span>`;
+  return `<span class="av ${cls}" title="${esc(m.name)}">${esc(initials(m))}</span>`;
 }
 // Everyone's initials on the card: green if coming, faded if not, outlined if no answer yet.
 function faces(ev) {
