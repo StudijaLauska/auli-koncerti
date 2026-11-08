@@ -5,6 +5,12 @@ const LS = {
   set(k, v) { try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch {} },
 };
 
+// Personal link from a reminder: /?me=<memberId>
+try {
+  const q = new URLSearchParams(location.search).get('me');
+  if (q) { LS.set('auli.me', q); history.replaceState(null, '', location.pathname); }
+} catch {}
+
 const state = {
   token: LS.get('auli.token'),
   needLogin: false,
@@ -496,7 +502,7 @@ function openSettings() {
     <div class="body">
       <h2>Iestatījumi</h2>
       <h3 style="margin:0 0 8px;font-size:1rem">Dalībnieki</h3>
-      <p class="meta" style="margin:0 0 10px">Tabulā dalībnieki tiek grupēti pēc lomas tādā secībā kā šeit.</p>
+      <p class="meta" style="margin:0 0 10px">Tabulā dalībnieki tiek grupēti pēc lomas tādā secībā kā šeit. Uz e-pastu katru pirmdienu tiek sūtīts atgādinājums, ja ir neatzīmēti gaidāmie pasākumi.</p>
       <div id="mlist"></div>
       <datalist id="roles">${[...new Set(state.data.members.map((m) => m.role).filter(Boolean))].map((r) => `<option value="${esc(r)}">`).join('')}</datalist>
       <div class="dlg-actions" style="justify-content:flex-start">
@@ -518,8 +524,11 @@ function openSettings() {
     </div>`);
   const drawMembers = () => {
     $('#mlist', dlg).innerHTML = members.map((m, i) => `
-      <div class="member-row"><input type="text" value="${esc(m.name)}" data-i="${i}" data-f="name" aria-label="Vārds" placeholder="Vārds Uzvārds">
-      <input type="text" class="role" value="${esc(m.role)}" data-i="${i}" data-f="role" aria-label="Loma" placeholder="Loma" list="roles">
+      <div class="member-row"><div class="member-fields">
+      <input type="text" value="${esc(m.name)}" data-i="${i}" data-f="name" aria-label="Vārds" placeholder="Vārds Uzvārds">
+      <input type="text" value="${esc(m.role)}" data-i="${i}" data-f="role" aria-label="Loma" placeholder="Loma" list="roles">
+      <input type="email" value="${esc(m.email)}" data-i="${i}" data-f="email" aria-label="E-pasts" placeholder="E-pasts atgādinājumiem">
+</div>
       <button type="button" class="btn danger" data-rm="${i}" aria-label="Noņemt">✕</button></div>`).join('') || '<p class="meta">Vēl nav neviena dalībnieka.</p>';
   };
   drawMembers();
@@ -531,7 +540,7 @@ function openSettings() {
     members.splice(i, 1);
     drawMembers();
   };
-  $('#madd', dlg).onclick = () => { members.push({ name: '', role: '' }); drawMembers(); dlg.querySelectorAll('#mlist input')[members.length - 1]?.focus(); };
+  $('#madd', dlg).onclick = () => { members.push({ name: '', role: '', email: '' }); drawMembers(); dlg.querySelectorAll('#mlist input')[members.length - 1]?.focus(); };
   $('#msave', dlg).onclick = async () => {
     try {
       const res = await api('members', { method: 'PUT', body: { members: members.filter((m) => m.name.trim()) } });

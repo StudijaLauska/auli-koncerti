@@ -18,3 +18,15 @@ Neliela mājaslapa grupas koncertu plānošanai. Katrs dalībnieks izvēlas savu
 npm install
 npm run dev   # http://localhost:8888 (ar paroli: BAND_PASSWORD=test npm run dev)
 ```
+
+## E-pasta atgādinājumi
+
+Katru pirmdienu ap 9:00–10:00 (Rīgas laiks) `netlify/functions/reminders.mjs` nosūta katram dalībniekam, kam iestatījumos ir e-pasts, vienu e-pastu ar visiem gaidāmajiem pasākumiem, kuriem viņš vēl nav atbildējis (Tieku/Netieku). Ja viss atzīmēts, e-pasts netiek sūtīts. E-pastā ir personīga saite `/?me=<id>`, kas atver lapu viņa vārdā.
+
+Ieslēgšana:
+1. Izveido bezmaksas kontu [resend.com](https://resend.com) un pievieno savu domēnu (Domains → Add domain, DNS ieraksti). Bez sava domēna Resend ļauj sūtīt tikai uz paša konta e-pastu.
+2. Resend → API Keys → izveido atslēgu.
+3. Netlify → Environment variables: `RESEND_API_KEY` = atslēga, `REMINDER_FROM` = piem. `Auļi <koncerti@tavsdomens.lv>`.
+4. Lapā → Iestatījumi ievadi dalībnieku e-pastus.
+
+Bez šiem mainīgajiem funkcija neko nesūta.

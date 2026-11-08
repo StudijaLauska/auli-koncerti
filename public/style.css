@@ -171,7 +171,7 @@ dialog form, dialog .body { padding: 18px; }
 dialog h2 { margin: 0 0 14px; font-size: 1.2rem; }
 label.f { display: block; margin-bottom: 12px; font-size: .88rem; color: var(--muted); }
 label.f > input, label.f > select, label.f > textarea { display: block; width: 100%; margin-top: 4px; }
-input[type=text], input[type=password], input[type=date], select, textarea {
+input[type=text], input[type=password], input[type=date], input[type=email], select, textarea {
   border: 1px solid var(--line); background: var(--bg); border-radius: 10px; padding: 10px 12px; font-size: 1rem; color: var(--text);
 }
 textarea { resize: vertical; min-height: 70px; }
@@ -265,3 +265,9 @@ table.grid .cmt b { color: var(--text); font-weight: 600; }
 table.grid td.has-note { white-space: normal; min-width: 96px; max-width: 140px; vertical-align: top; cursor: default; }
 table.grid .cell-note { font-size: .72rem; line-height: 1.25; color: var(--text); margin-top: 3px; text-align: left; overflow-wrap: anywhere; }
 table.grid td.cell.none.has-note { background: var(--maybe-bg); color: var(--maybe); }
+
+.member-row { align-items: flex-start; padding-bottom: 8px; border-bottom: 1px solid var(--line); margin-bottom: 8px; }
+.member-fields { flex: 1; min-width: 0; display: grid; grid-template-columns: 1.4fr 1fr; gap: 6px; }
+.member-fields input[type=email] { grid-column: 1 / -1; }
+.member-fields input { min-width: 0; width: 100%; }
+@media (max-width: 480px) { .member-fields { grid-template-columns: 1fr; } }
