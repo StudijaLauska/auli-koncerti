@@ -264,3 +264,4 @@ table.grid .cmt { font-size: .78rem; color: var(--maybe); margin-top: 3px; line-
 table.grid .cmt b { color: var(--text); font-weight: 600; }
 table.grid td.has-note { white-space: normal; min-width: 96px; max-width: 140px; vertical-align: top; cursor: default; }
 table.grid .cell-note { font-size: .72rem; line-height: 1.25; color: var(--text); margin-top: 3px; text-align: left; overflow-wrap: anywhere; }
+table.grid td.cell.none.has-note { background: var(--maybe-bg); color: var(--maybe); }
