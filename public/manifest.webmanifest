@@ -1,0 +1,9 @@
+{
+  "name": "Auļu koncerti",
+  "short_name": "Koncerti",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f6f2ec",
+  "theme_color": "#1f1a17",
+  "icons": [{ "src": "icon.svg", "sizes": "any", "type": "image/svg+xml" }]
+}
