@@ -206,7 +206,7 @@ function renderMain(app) {
 
   app.innerHTML = `
     <header class="top"><div class="wrap ${state.mode === 'table' ? 'wide' : ''}">
-      <div class="brand"><img src="icon.svg" alt="">Auļu koncerti</div>
+      <div class="brand"><img src="icon.svg" alt=""><span>Auļu koncerti</span></div>
       <button class="who" id="who" title="Mainīt">${avatar(me, 'sm')}<span>${esc(me.name)}</span></button>
       <button class="icon-btn" id="settings" aria-label="Iestatījumi">${ICON.gear}</button>
     </div></header>

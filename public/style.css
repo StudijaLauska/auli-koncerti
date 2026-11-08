@@ -245,3 +245,6 @@ table.grid td.has-note::after { content: ""; position: absolute; top: 0; right: 
 .pick .pick-grid button { display: grid; justify-items: center; gap: 6px; text-align: center; padding: 12px 6px; font-size: .85rem; line-height: 1.2; }
 .pick .pick-grid button:hover .av { box-shadow: 0 0 0 2px var(--accent); }
 @media (max-width: 480px) { .faces .av { width: 25px; height: 25px; font-size: .58rem; } }
+
+.brand { white-space: nowrap; min-width: 0; }
+@media (max-width: 400px) { .brand span { display: none; } }
