@@ -178,13 +178,12 @@ function byRole(members) {
   }
   return [...groups];
 }
-// Member photo: public/img/m/<id>.jpg (the preview passes data URIs). Falls back to initials.
+// Member initials in a circle.
 const initials = (name) => name.split(/\s+/).map((w) => w[0]).slice(0, 2).join('').toUpperCase();
 function avatar(m, cls = '') {
-  const src = window.MEMBER_PHOTOS ? window.MEMBER_PHOTOS[m.id] : `img/m/${encodeURIComponent(m.id)}.jpg`;
-  return `<span class="av ${cls}" title="${esc(m.name)}">${esc(initials(m.name))}${src ? `<img src="${esc(src)}" alt="" loading="lazy" onerror="this.remove()">` : ''}</span>`;
+  return `<span class="av ${cls}" title="${esc(m.name)}">${esc(initials(m.name))}</span>`;
 }
-// Everyone's face on the card: in colour if coming, faded if not, outlined if no answer yet.
+// Everyone's initials on the card: green if coming, faded if not, outlined if no answer yet.
 function faces(ev) {
   const order = { yes: 0, '': 1, maybe: 1, no: 2 };
   const list = state.data.members

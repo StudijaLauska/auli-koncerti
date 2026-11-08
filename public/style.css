@@ -248,3 +248,10 @@ table.grid td.has-note::after { content: ""; position: absolute; top: 0; right: 
 
 .brand { white-space: nowrap; min-width: 0; }
 @media (max-width: 400px) { .brand span { display: none; } }
+
+/* Initials: colour carries the answer */
+.av.f-yes { background: var(--yes-bg); color: var(--yes); }
+.av.f-no { background: var(--no-bg); color: var(--no); }
+.av.f-none { background: transparent; color: var(--muted); }
+.faces .av.f-no { opacity: .6; }
+.pick-grid .av.big, .who .av { background: var(--accent); color: var(--accent-ink); }
