@@ -275,7 +275,7 @@ function cardHtml(ev) {
 function noteHtml(mine) {
   return `
     <div class="note-input">
-      <input type="text" placeholder="Piem. vēl nezinu, tikai 2. dienā, nokavēšu" value="${esc(mine.note || '')}" maxlength="300" data-note aria-label="Mans komentārs">
+      <input type="text" placeholder="Mīlu Auļus, bet iespējams šajā dienā citur nopelnīšu vairāk. Nekas personisks, lūzeri 😎" value="${esc(mine.note || '')}" maxlength="300" data-note aria-label="Mans komentārs">
       <button class="btn" data-act="note">Saglabāt</button>
     </div>`;
 }
