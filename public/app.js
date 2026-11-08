@@ -410,16 +410,16 @@ function renderTable(root, evs) {
       const title = `${m.name}: ${ANS[a].label}${ans.note ? ' – ' + ans.note : ''}`;
       return `<td class="cell ${a || 'none'}${ans.note ? ' has-note' : ''}${firstOfGroup.has(m.id) ? ' g' : ''}" title="${esc(title)}"${extra}>${ANS[a].sym}</td>`;
     }).join('');
-    return `<tr><td title="${esc(ev.title)}"><div>${esc(ev.title)}</div><div class="sub">${d ? `${d.getDate()}.${String(d.getMonth() + 1).padStart(2, '0')}.${d.getFullYear()}` : 'bez datuma'} · ${STATUS[ev.status]}</div></td>${cells}<td class="g"><b>${t.yes}</b>/${n}</td></tr>`;
+    return `<tr><td title="${esc(ev.title)}"><div>${esc(ev.title)}</div><div class="sub">${d ? `${d.getDate()}.${String(d.getMonth() + 1).padStart(2, '0')}.${d.getFullYear()}` : 'bez datuma'} · ${STATUS[ev.status]}</div></td><td class="contact">${ev.contact ? linkify(ev.contact) : '<span class="sub">–</span>'}</td>${cells}<td class="g"><b>${t.yes}</b>/${n}</td></tr>`;
   }).join('');
   root.innerHTML = `
     <div class="table-scroll"><table class="grid">
       <thead>
-        <tr class="roles"><th></th>${groups.map(([role, g]) => `<th colspan="${g.length}" class="g">${esc(role || 'Bez lomas')}</th>`).join('')}<th class="g"></th></tr>
-        <tr><th>Pasākums</th>${ms.map((m) => `<th class="${firstOfGroup.has(m.id) ? 'g' : ''}"><span>${esc(m.name)}</span></th>`).join('')}<th class="g">Tiek</th></tr>
+        <tr class="roles"><th></th><th></th>${groups.map(([role, g]) => `<th colspan="${g.length}" class="g">${esc(role || 'Bez lomas')}</th>`).join('')}<th class="g"></th></tr>
+        <tr><th>Pasākums</th><th class="contact">Kontakti</th>${ms.map((m) => `<th class="${firstOfGroup.has(m.id) ? 'g' : ''}"><span>${esc(m.name)}</span></th>`).join('')}<th class="g">Tiek</th></tr>
       </thead>
       <tbody>${rows}</tbody>
-      <tfoot><tr><td><b>Tieku kopā</b></td>${ms.map((m) => `<td class="${firstOfGroup.has(m.id) ? 'g' : ''}"><b>${totals[m.id]}</b></td>`).join('')}<td class="g"></td></tr></tfoot>
+      <tfoot><tr><td><b>Tieku kopā</b></td><td></td>${ms.map((m) => `<td class="${firstOfGroup.has(m.id) ? 'g' : ''}"><b>${totals[m.id]}</b></td>`).join('')}<td class="g"></td></tr></tfoot>
     </table></div>
     ${notes.length ? '<p class="meta">Šūnas ar stūrīti satur komentāru. Pieskaries, lai to izlasītu.</p>' : ''}`;
   const show = (e) => { const c = e.target.closest('[data-n]'); if (c) toast(notes[c.dataset.n]); };

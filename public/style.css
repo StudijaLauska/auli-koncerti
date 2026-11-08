@@ -256,3 +256,6 @@ table.grid td.has-note::after { content: ""; position: absolute; top: 0; right: 
 .faces .av.f-no { opacity: .6; }
 .pick-grid .av.big, .who .av { background: var(--accent); color: var(--accent-ink); }
 .faces .av { letter-spacing: -.02em; }
+table.grid td.contact, table.grid th.contact { text-align: left; white-space: pre-line; min-width: 170px; max-width: 240px; font-size: .8rem; line-height: 1.35; overflow-wrap: anywhere; vertical-align: middle; }
+table.grid th.contact { vertical-align: bottom; }
+table.grid td.contact a { color: var(--accent); }
