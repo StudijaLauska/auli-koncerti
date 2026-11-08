@@ -395,7 +395,6 @@ function renderTable(root, evs) {
   const ms = groups.flatMap(([, g]) => g);
   const n = ms.length;
   const totals = Object.fromEntries(ms.map((m) => [m.id, 0]));
-  const notes = [];
   // first column of each role group gets a thicker left border
   const firstOfGroup = new Set(groups.map(([, g]) => g[0].id));
   const rows = evs.map((ev) => {
@@ -405,14 +404,11 @@ function renderTable(root, evs) {
       const ans = answerOf(m.id, ev.id);
       const a = ans.a === 'maybe' ? '' : ans.a || '';
       if (a === 'yes') totals[m.id]++;
-      let extra = '';
-      if (ans.note) { notes.push(`${m.name}: ${ans.note}`); extra = ` data-n="${notes.length - 1}" tabindex="0"`; }
+
       const title = `${m.name}: ${ANS[a].label}${ans.note ? ' – ' + ans.note : ''}`;
-      return `<td class="cell ${a || 'none'}${ans.note ? ' has-note' : ''}${firstOfGroup.has(m.id) ? ' g' : ''}" title="${esc(title)}"${extra}>${ANS[a].sym}</td>`;
+      return `<td class="cell ${a || 'none'}${ans.note ? ' has-note' : ''}${firstOfGroup.has(m.id) ? ' g' : ''}" title="${esc(title)}">${ANS[a].sym}${ans.note ? `<div class="cell-note">${esc(ans.note)}</div>` : ''}</td>`;
     }).join('');
-    const comments = ms.map((m) => ({ m, note: answerOf(m.id, ev.id).note })).filter((x) => x.note);
-    const short = (name) => { const p = name.split(/\s+/); return p[0] + (p[1] ? ' ' + p[1][0] + '.' : ''); };
-    return `<tr><td class="ev"><div>${esc(ev.title)}</div><div class="sub">${d ? `${d.getDate()}.${String(d.getMonth() + 1).padStart(2, '0')}.${d.getFullYear()}` : 'bez datuma'} · ${STATUS[ev.status]}</div>${comments.map(({ m, note }) => `<div class="cmt"><b>${esc(short(m.name))}:</b> ${esc(note)}</div>`).join('')}</td><td class="contact">${ev.contact ? linkify(ev.contact) : '<span class="sub">–</span>'}</td>${cells}<td class="g"><b>${t.yes}</b>/${n}</td></tr>`;
+    return `<tr><td class="ev"><div>${esc(ev.title)}</div><div class="sub">${d ? `${d.getDate()}.${String(d.getMonth() + 1).padStart(2, '0')}.${d.getFullYear()}` : 'bez datuma'} · ${STATUS[ev.status]}</div></td><td class="contact">${ev.contact ? linkify(ev.contact) : '<span class="sub">–</span>'}</td>${cells}<td class="g"><b>${t.yes}</b>/${n}</td></tr>`;
   }).join('');
   root.innerHTML = `
     <div class="table-scroll"><table class="grid">
@@ -424,9 +420,8 @@ function renderTable(root, evs) {
       <tfoot><tr><td><b>Tieku kopā</b></td><td></td>${ms.map((m) => `<td class="${firstOfGroup.has(m.id) ? 'g' : ''}"><b>${totals[m.id]}</b></td>`).join('')}<td class="g"></td></tr></tfoot>
     </table></div>
 `;
-  const show = (e) => { const c = e.target.closest('[data-n]'); if (c) toast(notes[c.dataset.n]); };
-  root.onclick = show;
-  root.onkeydown = (e) => { if (e.key === 'Enter') show(e); };
+  root.onclick = null;
+  root.onkeydown = null;
 }
 
 /* ---------- dialogs ---------- */
