@@ -259,3 +259,6 @@ table.grid td.has-note::after { content: ""; position: absolute; top: 0; right: 
 table.grid td.contact, table.grid th.contact { text-align: left; white-space: pre-line; min-width: 170px; max-width: 240px; font-size: .8rem; line-height: 1.35; overflow-wrap: anywhere; vertical-align: middle; }
 table.grid th.contact { vertical-align: bottom; }
 table.grid td.contact a { color: var(--accent); }
+table.grid td.ev { white-space: normal; min-width: 190px; max-width: 250px; vertical-align: top; }
+table.grid .cmt { font-size: .78rem; color: var(--maybe); margin-top: 3px; line-height: 1.3; }
+table.grid .cmt b { color: var(--text); font-weight: 600; }

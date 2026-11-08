@@ -410,7 +410,9 @@ function renderTable(root, evs) {
       const title = `${m.name}: ${ANS[a].label}${ans.note ? ' – ' + ans.note : ''}`;
       return `<td class="cell ${a || 'none'}${ans.note ? ' has-note' : ''}${firstOfGroup.has(m.id) ? ' g' : ''}" title="${esc(title)}"${extra}>${ANS[a].sym}</td>`;
     }).join('');
-    return `<tr><td title="${esc(ev.title)}"><div>${esc(ev.title)}</div><div class="sub">${d ? `${d.getDate()}.${String(d.getMonth() + 1).padStart(2, '0')}.${d.getFullYear()}` : 'bez datuma'} · ${STATUS[ev.status]}</div></td><td class="contact">${ev.contact ? linkify(ev.contact) : '<span class="sub">–</span>'}</td>${cells}<td class="g"><b>${t.yes}</b>/${n}</td></tr>`;
+    const comments = ms.map((m) => ({ m, note: answerOf(m.id, ev.id).note })).filter((x) => x.note);
+    const short = (name) => { const p = name.split(/\s+/); return p[0] + (p[1] ? ' ' + p[1][0] + '.' : ''); };
+    return `<tr><td class="ev"><div>${esc(ev.title)}</div><div class="sub">${d ? `${d.getDate()}.${String(d.getMonth() + 1).padStart(2, '0')}.${d.getFullYear()}` : 'bez datuma'} · ${STATUS[ev.status]}</div>${comments.map(({ m, note }) => `<div class="cmt"><b>${esc(short(m.name))}:</b> ${esc(note)}</div>`).join('')}</td><td class="contact">${ev.contact ? linkify(ev.contact) : '<span class="sub">–</span>'}</td>${cells}<td class="g"><b>${t.yes}</b>/${n}</td></tr>`;
   }).join('');
   root.innerHTML = `
     <div class="table-scroll"><table class="grid">
@@ -421,7 +423,7 @@ function renderTable(root, evs) {
       <tbody>${rows}</tbody>
       <tfoot><tr><td><b>Tieku kopā</b></td><td></td>${ms.map((m) => `<td class="${firstOfGroup.has(m.id) ? 'g' : ''}"><b>${totals[m.id]}</b></td>`).join('')}<td class="g"></td></tr></tfoot>
     </table></div>
-    ${notes.length ? '<p class="meta">Šūnas ar stūrīti satur komentāru. Pieskaries, lai to izlasītu.</p>' : ''}`;
+`;
   const show = (e) => { const c = e.target.closest('[data-n]'); if (c) toast(notes[c.dataset.n]); };
   root.onclick = show;
   root.onkeydown = (e) => { if (e.key === 'Enter') show(e); };
