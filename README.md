@@ -1,6 +1,6 @@
 # Auļu koncerti
 
-Neliela mājaslapa grupas koncertu plānošanai. Katrs dalībnieks izvēlas savu vārdu un pie katra pasākuma atzīmē **Tieku / Netieku / Vēl nezinu**. Pēc noklusējuma lapai nav paroles: katrs, kam ir saite, var to atvērt un labot. Ja vajag paroli, Netlify pievieno `BAND_PASSWORD`.
+Neliela mājaslapa grupas koncertu plānošanai. Katrs dalībnieks izvēlas savu vārdu un pie katra pasākuma atzīmē **Tieku / Netieku** un var atstāt komentāru. Pēc noklusējuma lapai nav paroles: katrs, kam ir saite, var to atvērt un labot. Ja vajag paroli, Netlify pievieno `BAND_PASSWORD`.
 
 - `public/` – lapa (HTML/CSS/JS, bez build soļa)
 - `netlify/functions/api.mjs` – API, dati glabājas Netlify Blobs
