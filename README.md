@@ -23,12 +23,18 @@ npm run dev   # http://localhost:8888 (ar paroli: BAND_PASSWORD=test npm run dev
 
 Katru pirmdienu ap 9:00–10:00 (Rīgas laiks) `netlify/functions/reminders.mjs` nosūta katram dalībniekam, kam iestatījumos ir e-pasts, vienu e-pastu ar visiem gaidāmajiem pasākumiem, kuriem viņš vēl nav atbildējis (ne Tieku/Netieku, ne komentārs). Ja viss atzīmēts, e-pasts netiek sūtīts. E-pastā ir personīga saite `/?me=<id>`, kas atver lapu viņa vārdā.
 
-Ieslēgšana:
-1. Izveido bezmaksas kontu [resend.com](https://resend.com) un pievieno savu domēnu (Domains → Add domain, DNS ieraksti). Bez sava domēna Resend ļauj sūtīt tikai uz paša konta e-pastu.
-2. Resend → API Keys → izveido atslēgu.
-3. Netlify → Environment variables: `RESEND_API_KEY` = atslēga, `REMINDER_FROM` = `Auļi <info@auli.lv>`.
-   Testēšanai pievieno arī `REMINDER_ONLY` = `tavs@epasts.lv` (vairākus atdala ar komatu): kamēr tas ir iestatīts, atgādinājumi iet tikai uz šīm adresēm. Kad viss strādā, izdzēs `REMINDER_ONLY`, un tie ies visiem.
-   Lai nepagaidītu līdz pirmdienai: Netlify → Logs & metrics → Functions → `reminders` → **Run now**.
-4. Lapā → Iestatījumi ievadi dalībnieku e-pastus.
+Sūtīšana: ir divi varianti, der viens no tiem (ja iestatīti abi, izmanto Gmail).
+
+**A. No Gmail adreses** (piem. aullietnotranss@gmail.com)
+1. Šim Google kontam ieslēdz 2-Step Verification un izveido **App password**: https://myaccount.google.com/apppasswords
+2. Netlify → Environment variables: `GMAIL_USER` = `aullietnotranss@gmail.com`, `GMAIL_APP_PASSWORD` = 16 burtu parole (atzīmē "Contains secret values").
+
+**B. Caur Resend no sava domēna** (piem. info@auli.lv)
+1. [resend.com](https://resend.com) → Domains → pievieno domēnu un DNS ierakstus; API Keys → izveido atslēgu.
+2. Netlify → Environment variables: `RESEND_API_KEY` = atslēga, `REMINDER_FROM` = `Auļi <info@auli.lv>`.
+
+Testēšanai pievieno arī `REMINDER_ONLY` = `tavs@epasts.lv` (vairākus atdala ar komatu): kamēr tas ir iestatīts, atgādinājumi iet tikai uz šīm adresēm. Kad viss strādā, izdzēs `REMINDER_ONLY`.
+Pēc mainīgo maiņas: Deploys → Trigger deploy. Lai nepagaidītu līdz pirmdienai: Logs → Functions → `reminders` → **Run now**.
+Lapā → Iestatījumi ievadi dalībnieku e-pastus.
 
 Bez šiem mainīgajiem funkcija neko nesūta.

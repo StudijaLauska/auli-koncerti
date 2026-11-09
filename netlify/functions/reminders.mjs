@@ -1,37 +1,62 @@
 // Every Monday morning (Riga time) e-mail each member a list of upcoming events they haven't answered.
-// Needs env vars RESEND_API_KEY and REMINDER_FROM (e.g. "Auļi <info@auli.lv>", a domain verified in Resend).
+// Sending, whichever is configured (Gmail wins if both are):
+//   Gmail:  GMAIL_USER (e.g. aullietnotranss@gmail.com) + GMAIL_APP_PASSWORD (Google "App password", needs 2-step verification)
+//   Resend: RESEND_API_KEY + REMINDER_FROM (e.g. "Auļi <info@auli.lv>", a domain verified in Resend)
 // Optional REMINDER_ONLY: comma-separated e-mails; while set, only those members get reminders (for testing).
 import { getStore } from '@netlify/blobs';
+import nodemailer from 'nodemailer';
 import { loadAll } from '../../lib/api.mjs';
 import { buildReminders, reminderHtml } from '../../lib/reminders.mjs';
 
+function makeSender(env) {
+  const gmailUser = env('GMAIL_USER');
+  const gmailPass = env('GMAIL_APP_PASSWORD');
+  if (gmailUser && gmailPass) {
+    const transport = nodemailer.createTransport({ service: 'gmail', auth: { user: gmailUser, pass: gmailPass.replace(/\s+/g, '') } });
+    const from = { name: 'Auļi', address: gmailUser };
+    return async (msg) => {
+      try { await transport.sendMail({ from, ...msg }); return 'ok'; } catch (err) { return 'KĻŪDA ' + err.message; }
+    };
+  }
+  const key = env('RESEND_API_KEY');
+  const from = env('REMINDER_FROM');
+  if (key && from) {
+    return async (msg) => {
+      const res = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: { authorization: `Bearer ${key}`, 'content-type': 'application/json' },
+        body: JSON.stringify({ from, ...msg }),
+      });
+      return res.ok ? 'ok' : 'KĻŪDA ' + res.status + ' ' + (await res.text());
+    };
+  }
+  return null;
+}
+
 export default async () => {
-  const key = Netlify.env.get('RESEND_API_KEY');
-  const from = Netlify.env.get('REMINDER_FROM');
-  if (!key || !from) {
-    console.log('Atgādinājumi izslēgti: nav RESEND_API_KEY vai REMINDER_FROM');
+  const env = (k) => Netlify.env.get(k);
+  const send = makeSender(env);
+  if (!send) {
+    console.log('Atgādinājumi izslēgti: nav ne GMAIL_USER + GMAIL_APP_PASSWORD, ne RESEND_API_KEY + REMINDER_FROM');
     return;
   }
-  const siteUrl = Netlify.env.get('URL') || process.env.URL;
+  const siteUrl = env('URL') || process.env.URL;
   const data = await loadAll(getStore({ name: 'auli', consistency: 'strong' }));
-  const only = (Netlify.env.get('REMINDER_ONLY') || '').split(',').map((s) => s.trim().toLowerCase()).filter(Boolean);
+  const only = (env('REMINDER_ONLY') || '').split(',').map((s) => s.trim().toLowerCase()).filter(Boolean);
   const reminders = buildReminders(data, siteUrl)
     .filter((r) => r.member.email)
     .filter((r) => !only.length || only.includes(r.member.email.toLowerCase()));
   if (only.length) console.log('Testa režīms (REMINDER_ONLY): sūta tikai', only.join(', '));
+  if (!reminders.length) console.log('Nevienam nav neatzīmētu pasākumu, nekas netiek sūtīts');
   for (const r of reminders) {
-    const res = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: { authorization: `Bearer ${key}`, 'content-type': 'application/json' },
-      body: JSON.stringify({
-        from,
-        to: r.member.email,
-        subject: `Auļi: atzīmējies ${r.events.length} ${r.events.length === 1 ? 'pasākumam' : 'pasākumiem'}`,
-        text: r.text,
-        html: reminderHtml(r),
-      }),
+    const n = r.events.length;
+    const status = await send({
+      to: r.member.email,
+      subject: `Auļi: atzīmējies ${n} ${n === 1 ? 'pasākumam' : 'pasākumiem'}`,
+      text: r.text,
+      html: reminderHtml(r),
     });
-    console.log(r.member.name, res.status, res.ok ? '' : await res.text());
+    console.log(r.member.name, r.member.email, n, status);
   }
 };
 
