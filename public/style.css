@@ -81,6 +81,7 @@ header.top .wrap { display: flex; align-items: center; gap: 10px; min-height: 56
   border: 1px solid var(--line); background: var(--surface); padding: 9px 16px; border-radius: 10px; font-weight: 600;
   display: inline-flex; align-items: center; gap: 6px;
 }
+a.btn { color: inherit; text-decoration: none; }
 .btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
 .btn.danger { color: var(--no); }
 .btn.danger.armed { background: var(--no); border-color: var(--no); color: #fff; }
@@ -141,6 +142,8 @@ header.top .wrap { display: flex; align-items: center; gap: 10px; min-height: 56
 .dot.none { background: var(--none-bg); color: var(--none); }
 .people .note { color: var(--muted); font-size: .82rem; }
 .row-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.cal-actions { align-items: center; margin: 12px 0 14px; }
+.cal-label { color: var(--muted); font-size: .9rem; width: 100%; }
 .note-input { display: flex; gap: 6px; margin: 0 14px 14px; }
 .note-input input { flex: 1; min-width: 0; }
 .empty { text-align: center; color: var(--muted); padding: 3rem 1rem; }

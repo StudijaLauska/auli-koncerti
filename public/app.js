@@ -308,6 +308,8 @@ function noteHtml(mine) {
     </div>`;
 }
 
+const calLink = (ev, kind) => esc(`/api/cal/${encodeURIComponent(ev.id)}${kind}${state.token ? '?t=' + encodeURIComponent(state.token) : ''}`);
+
 function detailsHtml(ev) {
   const rows = [
     ['Kad', esc(fmtLong(ev)) + (ev.time ? ', ' + esc(ev.time) : '')],
@@ -323,6 +325,11 @@ function detailsHtml(ev) {
   return `
     <div class="details">
       <dl>${rows.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('')}</dl>
+      ${ev.date ? `<div class="row-actions cal-actions">
+        <span class="cal-label">Pievienot kalendāram:</span>
+        <a class="btn" href="${calLink(ev, '.ics')}">Apple / iPhone</a>
+        <a class="btn" href="${calLink(ev, '/google')}" target="_blank" rel="noopener">Google</a>
+      </div>` : ''}
       <ul class="people">
         ${people.map(({ m, ans }) => `<li><span class="pav">${avatar(m, `f-${ans.a === 'yes' || ans.a === 'no' ? ans.a : 'none'}`)}<span class="dot ${ans.a || 'none'}">${ANS[ans.a || ''].sym}</span></span><span>${esc(m.name)}${ans.note ? ` <span class="note">– ${esc(ans.note)}</span>` : ''}</span></li>`).join('')}
       </ul>
