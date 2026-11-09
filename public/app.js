@@ -166,8 +166,8 @@ function renderPick(app) {
   app.innerHTML = `
     <div class="center"><div class="panel">
       <h1>Kas tu esi?</h1>
-      <p>Izvēlies savu vārdu. Šajā ierīcē tas tiks atcerēts.</p>
-      <div class="pick">${byRole(members).map(([role, ms]) => `${role ? `<div class="pick-role">${esc(role)}</div>` : ''}<div class="pick-grid">${ms.map((m) => `<button data-id="${esc(m.id)}">${avatar(m, 'big')}<span>${esc(m.name)}</span></button>`).join('')}</div>`).join('')}</div>
+      <p>Izvēlies savu vārdu. Šajā ierīcē tas tiks saglabāts.</p>
+      <div class="pick"><div class="pick-grid">${byRole(members).flatMap(([, ms]) => ms).map((m) => `<button data-id="${esc(m.id)}">${avatar(m, 'big')}<span>${esc(m.name)}</span></button>`).join('')}</div></div>
       ${members.length ? '' : '<p>Dalībnieku saraksts vēl ir tukšs. Pievieno dalībniekus iestatījumos.</p><button class="btn primary" id="settings">Iestatījumi</button>'}
     </div></div>`;
   app.querySelectorAll('.pick button').forEach((b) => (b.onclick = () => { state.me = b.dataset.id; LS.set('auli.me', state.me); render(); }));
