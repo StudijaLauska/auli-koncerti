@@ -83,6 +83,7 @@ header.top .wrap { display: flex; align-items: center; gap: 10px; min-height: 56
 }
 .btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
 .btn.danger { color: var(--no); }
+.btn.danger.armed { background: var(--no); border-color: var(--no); color: #fff; }
 .btn:disabled { opacity: .6; cursor: default; }
 
 .notice { background: var(--maybe-bg); color: var(--text); border-radius: var(--radius); padding: 12px 14px; margin: 12px 0; font-size: .95rem; }

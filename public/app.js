@@ -328,8 +328,32 @@ function detailsHtml(ev) {
       </ul>
       <div class="row-actions">
         <button class="btn" data-act="edit">Labot pasākumu</button>
+        <button class="btn danger" data-act="delete">Dzēst pasākumu</button>
       </div>
     </div>`;
+}
+
+// First click arms the button ("Tiešām dzēst?"), a second click within 4 s confirms.
+// In-page instead of confirm(), which embedded viewers and some phones block.
+function confirmTwice(btn) {
+  if (btn.dataset.armed) return true;
+  btn.dataset.armed = '1';
+  const label = btn.textContent;
+  btn.textContent = 'Tiešām dzēst?';
+  btn.classList.add('armed');
+  setTimeout(() => { delete btn.dataset.armed; btn.textContent = label; btn.classList.remove('armed'); }, 4000);
+  return false;
+}
+
+async function deleteEvent(ev) {
+  try {
+    await api('events/' + encodeURIComponent(ev.id), { method: 'DELETE' });
+    state.data.events = state.data.events.filter((x) => x.id !== ev.id);
+    state.open.delete(ev.id);
+    render();
+    toast(`"${ev.title}" izdzēsts`);
+    return true;
+  } catch (err) { toast(err.message); return false; }
 }
 
 function bindCards(root) {
@@ -363,6 +387,8 @@ function bindCards(root) {
       toast(note ? 'Komentārs saglabāts' : 'Komentārs izdzēsts');
     } else if (act === 'edit') {
       openEditor(ev);
+    } else if (act === 'delete') {
+      if (confirmTwice(btn)) await deleteEvent(ev);
     }
   };
   root.onkeydown = (e) => {
@@ -467,15 +493,8 @@ function openEditor(ev) {
     </form>`);
   const form = $('form', dlg);
   $('[data-cancel]', dlg).onclick = () => dlg.close();
-  $('[data-del]', dlg)?.addEventListener('click', async () => {
-    if (!confirm(`Dzēst "${e.title}"? To nevarēs atsaukt.`)) return;
-    try {
-      await api('events/' + encodeURIComponent(e.id), { method: 'DELETE' });
-      state.data.events = state.data.events.filter((x) => x.id !== e.id);
-      dlg.close();
-      render();
-      toast('Pasākums izdzēsts');
-    } catch (err) { toast(err.message); }
+  $('[data-del]', dlg)?.addEventListener('click', async (evt) => {
+    if (confirmTwice(evt.currentTarget) && (await deleteEvent(e))) dlg.close();
   });
   form.onsubmit = async (evt) => {
     evt.preventDefault();
