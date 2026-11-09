@@ -33,7 +33,7 @@ Sūtīšana: ir divi varianti, der viens no tiem (ja iestatīti abi, izmanto Gma
 1. [resend.com](https://resend.com) → Domains → pievieno domēnu un DNS ierakstus; API Keys → izveido atslēgu.
 2. Netlify → Environment variables: `RESEND_API_KEY` = atslēga, `REMINDER_FROM` = `Auļi <info@auli.lv>`.
 
-Testēšanai pievieno arī `REMINDER_ONLY` = `tavs@epasts.lv` (vairākus atdala ar komatu): kamēr tas ir iestatīts, atgādinājumi iet tikai uz šīm adresēm. Kad viss strādā, izdzēs `REMINDER_ONLY`.
+Testēšanai pievieno arī `REMINDER_ONLY` = `tavs@epasts.lv` (vairākus atdala ar komatu): kamēr tas ir iestatīts, atgādinājumi iet tikai uz šīm adresēm. Kad viss strādā, izdzēs `REMINDER_ONLY` un pievieno `REMINDER_ALL` = `1` (bez viena no šiem diviem nekas netiek sūtīts).
 Pēc mainīgo maiņas: Deploys → Trigger deploy. Lai nepagaidītu līdz pirmdienai: Logs → Functions → `reminders` → **Run now**.
 Lapā → Iestatījumi ievadi dalībnieku e-pastus.
 

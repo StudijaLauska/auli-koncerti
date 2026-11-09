@@ -2,7 +2,8 @@
 // Sending, whichever is configured (Gmail wins if both are):
 //   Gmail:  GMAIL_USER (e.g. aullietnotranss@gmail.com) + GMAIL_APP_PASSWORD (Google "App password", needs 2-step verification)
 //   Resend: RESEND_API_KEY + REMINDER_FROM (e.g. "Auļi <info@auli.lv>", a domain verified in Resend)
-// Optional REMINDER_ONLY: comma-separated e-mails; while set, only those members get reminders (for testing).
+// REMINDER_ONLY: comma-separated e-mails; while set, only those members get reminders (for testing).
+// Safety: without REMINDER_ONLY nothing is sent unless REMINDER_ALL=1, so a missing/mistyped variable never mails the whole band.
 import { getStore } from '@netlify/blobs';
 import nodemailer from 'nodemailer';
 import { loadAll } from '../../lib/api.mjs';
@@ -47,6 +48,10 @@ export default async () => {
     .filter((r) => r.member.email)
     .filter((r) => !only.length || only.includes(r.member.email.toLowerCase()));
   if (only.length) console.log('Testa režīms (REMINDER_ONLY): sūta tikai', only.join(', '));
+  else if (env('REMINDER_ALL') !== '1') {
+    console.log('Nav ne REMINDER_ONLY, ne REMINDER_ALL=1, tāpēc nekas netiek sūtīts. Testam: REMINDER_ONLY=tavs@epasts.lv; visiem: REMINDER_ALL=1');
+    return;
+  }
   if (!reminders.length) console.log('Nevienam nav neatzīmētu pasākumu, nekas netiek sūtīts');
   for (const r of reminders) {
     const n = r.events.length;
