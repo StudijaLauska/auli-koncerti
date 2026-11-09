@@ -327,7 +327,7 @@ function detailsHtml(ev) {
       <dl>${rows.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('')}</dl>
       ${ev.date ? `<div class="row-actions cal-actions">
         <span class="cal-label">Pievienot kalendāram:</span>
-        <a class="btn" href="${calLink(ev, '.ics')}">Apple / iPhone</a>
+        <a class="btn" href="${calLink(ev, '.ics')}">Apple</a>
         <a class="btn" href="${calLink(ev, '/google')}" target="_blank" rel="noopener">Google</a>
       </div>` : ''}
       <ul class="people">
