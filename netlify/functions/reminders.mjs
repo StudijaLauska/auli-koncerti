@@ -1,5 +1,6 @@
 // Every Monday morning (Riga time) e-mail each member a list of upcoming events they haven't answered.
-// Needs env vars RESEND_API_KEY and REMINDER_FROM (e.g. "Auļi <koncerti@yourdomain.lv>", a domain verified in Resend).
+// Needs env vars RESEND_API_KEY and REMINDER_FROM (e.g. "Auļi <info@auli.lv>", a domain verified in Resend).
+// Optional REMINDER_ONLY: comma-separated e-mails; while set, only those members get reminders (for testing).
 import { getStore } from '@netlify/blobs';
 import { loadAll } from '../../lib/api.mjs';
 import { buildReminders, reminderHtml } from '../../lib/reminders.mjs';
@@ -13,7 +14,11 @@ export default async () => {
   }
   const siteUrl = Netlify.env.get('URL') || process.env.URL;
   const data = await loadAll(getStore({ name: 'auli', consistency: 'strong' }));
-  const reminders = buildReminders(data, siteUrl).filter((r) => r.member.email);
+  const only = (Netlify.env.get('REMINDER_ONLY') || '').split(',').map((s) => s.trim().toLowerCase()).filter(Boolean);
+  const reminders = buildReminders(data, siteUrl)
+    .filter((r) => r.member.email)
+    .filter((r) => !only.length || only.includes(r.member.email.toLowerCase()));
+  if (only.length) console.log('Testa režīms (REMINDER_ONLY): sūta tikai', only.join(', '));
   for (const r of reminders) {
     const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',
