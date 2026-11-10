@@ -257,6 +257,8 @@ table.grid td.has-note::after { display: none;  content: ""; position: absolute;
 .av.f-yes { background: var(--yes-bg); color: var(--yes); }
 .av.f-no { background: var(--no-bg); color: var(--no); }
 .av.f-none { background: transparent; color: var(--muted); }
+.av.f-note { background: var(--maybe-bg); color: var(--maybe); }
+.faces .av.f-note { box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--maybe); margin-right: 3px; }
 .faces .av.f-no { opacity: .6; }
 .pick-grid .av.big, .who .av { background: var(--accent); color: var(--accent-ink); }
 .faces .av { letter-spacing: -.02em; }

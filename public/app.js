@@ -118,11 +118,13 @@ function answerOf(memberId, eventId) {
   return state.data.answers[memberId]?.[eventId] || { a: '' };
 }
 function tally(ev) {
-  const t = { yes: 0, no: 0, maybe: 0, '': 0, notes: 0 };
+  const t = { yes: 0, no: 0, maybe: 0, '': 0, notes: 0, missing: 0 };
   for (const m of state.data.members) {
     const ans = answerOf(m.id, ev.id);
     t[ans.a || '']++;
     if (ans.note) t.notes++;
+    // A comment counts as an answer (same rule as the e-mail reminders).
+    if (ans.a !== 'yes' && ans.a !== 'no' && !ans.note) t.missing++;
   }
   return t;
 }
@@ -211,11 +213,12 @@ function avatar(m, cls = '') {
 }
 // Everyone's initials on the card: green if coming, faded if not, outlined if no answer yet.
 function faces(ev) {
-  const order = { yes: 0, '': 1, maybe: 1, no: 2 };
+  const kind = (ans) => (ans.a === 'yes' || ans.a === 'no' ? ans.a : ans.note ? 'note' : 'none');
+  const order = { yes: 0, note: 1, none: 2, no: 3 };
   const list = state.data.members
     .map((m) => ({ m, ans: answerOf(m.id, ev.id) }))
-    .sort((a, b) => order[a.ans.a || ''] - order[b.ans.a || '']);
-  return `<div class="faces">${list.map(({ m, ans }) => avatar(m, `f-${ans.a === 'yes' || ans.a === 'no' ? ans.a : 'none'}${ans.note ? ' has-note' : ''}${m.id === state.me ? ' me' : ''}`)).join('')}</div>`;
+    .sort((a, b) => order[kind(a.ans)] - order[kind(b.ans)]);
+  return `<div class="faces">${list.map(({ m, ans }) => avatar(m, `f-${kind(ans)}${ans.note ? ' has-note' : ''}${m.id === state.me ? ' me' : ''}`)).join('')}</div>`;
 }
 const plural = (n, one, many) => (n % 10 === 1 && n % 100 !== 11 ? one : many);
 
@@ -298,7 +301,7 @@ function cardHtml(ev) {
             <span>no ${n}</span>
           </span>
           ${t.notes ? `<span class="q">${t.notes} ${plural(t.notes, 'komentārs', 'komentāri')}</span>` : ''}
-          ${t[''] + t.maybe && ev.status !== 'cancelled' ? `<span class="missing">${t[''] + t.maybe} nav atbildējuši</span>` : ''}
+          ${t.missing && ev.status !== 'cancelled' ? `<span class="missing">${t.missing} nav atbildējuši</span>` : ''}
         </div>
       </div>
       ${faces(ev)}
