@@ -149,7 +149,7 @@ function render() {
 function renderLogin(app) {
   app.innerHTML = `
     <div class="center"><form class="panel" id="login">
-      <img class="logo" src="icon.svg" alt="">
+      <img class="logo" src="logo-icon.png" alt="">
       <h1>Auļu koncerti</h1>
       <p>Ievadi grupas paroli.</p>
       <label class="f">Parole<input type="password" name="password" autocomplete="current-password" required autofocus></label>
@@ -231,7 +231,7 @@ function renderMain(app) {
 
   app.innerHTML = `
     <header class="top"><div class="wrap ${state.mode === 'table' ? 'wide' : ''}">
-      <div class="brand"><img src="icon.svg" alt=""><span>Auļu koncerti</span></div>
+      <div class="brand"><img src="logo-icon.png" alt=""><span>Auļu koncerti</span></div>
       <button class="who" id="who" title="Mainīt">${avatar(me, 'sm')}<span>${esc(me.name)}</span></button>
       <button class="icon-btn" id="settings" aria-label="Iestatījumi">${ICON.gear}</button>
     </div></header>
