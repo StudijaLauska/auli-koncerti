@@ -97,6 +97,14 @@ a.btn { color: inherit; text-decoration: none; }
   margin-bottom: 10px; overflow: hidden;
 }
 .card.cancelled { opacity: .6; }
+/* Status at a glance: coloured stripe on the left and date box; planning cards also get a dashed outline. */
+.card.confirmed { border-left: 6px solid var(--yes); }
+.card.planning { border-left: 6px solid var(--maybe); border-style: dashed dashed dashed solid; border-color: var(--maybe); }
+.card.cancelled { border-left: 6px solid var(--none); }
+.card.confirmed .datebox { background: var(--yes-bg); }
+.card.confirmed .datebox .d { color: var(--yes); }
+.card.planning .datebox { background: var(--maybe-bg); }
+.card.planning .datebox .d { color: var(--maybe); }
 .card-main { display: grid; grid-template-columns: 56px 1fr; gap: 12px; padding: 14px; align-items: start; cursor: pointer; }
 .datebox { text-align: center; border-radius: 10px; background: var(--surface-2); padding: 6px 0; line-height: 1.1; }
 .datebox .d { font-size: 1.35rem; font-weight: 750; }
@@ -277,3 +285,10 @@ table.grid td.cell.none.has-note { background: var(--maybe-bg); color: var(--may
 .member-fields input[type=email] { grid-column: 1 / -1; }
 .member-fields input { min-width: 0; width: 100%; }
 @media (max-width: 480px) { .member-fields { grid-template-columns: 1fr; } }
+
+/* Table: stripe + tint on the event cell by status */
+table.grid tr.st-confirmed td.ev { box-shadow: inset 6px 0 0 var(--yes); }
+table.grid tr.st-planning td.ev { box-shadow: inset 6px 0 0 var(--maybe); background: var(--maybe-bg); }
+table.grid tr.st-cancelled td.ev { box-shadow: inset 6px 0 0 var(--none); opacity: .7; }
+table.grid td.ev { padding-left: 16px; }
+table.grid td.ev .chip { margin-left: 4px; font-size: .7rem; padding: 1px 7px; }

@@ -458,7 +458,7 @@ function renderTable(root, evs) {
       const title = `${m.name}: ${ANS[a].label}${ans.note ? ' – ' + ans.note : ''}`;
       return `<td class="cell ${a || 'none'}${ans.note ? ' has-note' : ''}${firstOfGroup.has(m.id) ? ' g' : ''}" title="${esc(title)}">${ANS[a].sym}${ans.note ? `<div class="cell-note">${esc(ans.note)}</div>` : ''}</td>`;
     }).join('');
-    return `<tr><td class="ev"><div>${esc(ev.title)}</div><div class="sub">${fmtShortRange(ev)} · ${STATUS[ev.status]}</div></td><td class="contact">${ev.contact ? linkify(ev.contact) : '<span class="sub">–</span>'}</td>${cells}</tr>`;
+    return `<tr class="st-${ev.status}"><td class="ev"><div>${esc(ev.title)}</div><div class="sub">${fmtShortRange(ev)} <span class="chip ${ev.status}">${STATUS[ev.status]}</span></div></td><td class="contact">${ev.contact ? linkify(ev.contact) : '<span class="sub">–</span>'}</td>${cells}</tr>`;
   }).join('');
   root.innerHTML = `
     <div class="table-scroll"><table class="grid">
