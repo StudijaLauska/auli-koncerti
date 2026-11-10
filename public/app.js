@@ -54,6 +54,18 @@ function fmtLong(ev) {
   return s;
 }
 
+// 6.02.2027 · 1.–2.05.2027 · 30.07.–2.08.2027 · 30.12.2027–2.01.2028
+function fmtShortRange(ev) {
+  const d = parseDate(ev.date);
+  if (!d) return 'bez datuma';
+  const dm = (x) => `${x.getDate()}.${String(x.getMonth() + 1).padStart(2, '0')}.`;
+  const e = parseDate(ev.endDate);
+  if (!e || e <= d) return dm(d) + d.getFullYear();
+  if (e.getFullYear() !== d.getFullYear()) return `${dm(d)}${d.getFullYear()}–${dm(e)}${e.getFullYear()}`;
+  if (e.getMonth() !== d.getMonth()) return `${dm(d)}–${dm(e)}${e.getFullYear()}`;
+  return `${d.getDate()}.–${dm(e)}${e.getFullYear()}`;
+}
+
 function toast(msg) {
   const t = $('#toast');
   t.textContent = msg;
@@ -433,30 +445,25 @@ function renderTable(root, evs) {
   const groups = byRole(state.data.members);
   const ms = groups.flatMap(([, g]) => g);
   const n = ms.length;
-  const totals = Object.fromEntries(ms.map((m) => [m.id, 0]));
   // first column of each role group gets a thicker left border
   const firstOfGroup = new Set(groups.map(([, g]) => g[0].id));
   const rows = evs.map((ev) => {
-    const d = parseDate(ev.date);
-    const t = tally(ev);
     const cells = ms.map((m) => {
       const ans = answerOf(m.id, ev.id);
       const a = ans.a === 'maybe' ? '' : ans.a || '';
-      if (a === 'yes') totals[m.id]++;
 
       const title = `${m.name}: ${ANS[a].label}${ans.note ? ' – ' + ans.note : ''}`;
       return `<td class="cell ${a || 'none'}${ans.note ? ' has-note' : ''}${firstOfGroup.has(m.id) ? ' g' : ''}" title="${esc(title)}">${ANS[a].sym}${ans.note ? `<div class="cell-note">${esc(ans.note)}</div>` : ''}</td>`;
     }).join('');
-    return `<tr><td class="ev"><div>${esc(ev.title)}</div><div class="sub">${d ? `${d.getDate()}.${String(d.getMonth() + 1).padStart(2, '0')}.${d.getFullYear()}` : 'bez datuma'} · ${STATUS[ev.status]}</div></td><td class="contact">${ev.contact ? linkify(ev.contact) : '<span class="sub">–</span>'}</td>${cells}<td class="g"><b>${t.yes}</b>/${n}</td></tr>`;
+    return `<tr><td class="ev"><div>${esc(ev.title)}</div><div class="sub">${fmtShortRange(ev)} · ${STATUS[ev.status]}</div></td><td class="contact">${ev.contact ? linkify(ev.contact) : '<span class="sub">–</span>'}</td>${cells}</tr>`;
   }).join('');
   root.innerHTML = `
     <div class="table-scroll"><table class="grid">
       <thead>
-        <tr class="roles"><th></th><th></th>${groups.map(([role, g]) => `<th colspan="${g.length}" class="g">${esc(role || 'Bez lomas')}</th>`).join('')}<th class="g"></th></tr>
-        <tr><th>Pasākums</th><th class="contact">Kontakti</th>${ms.map((m) => `<th class="${firstOfGroup.has(m.id) ? 'g' : ''}"><span>${esc(m.name)}</span></th>`).join('')}<th class="g">Tiek</th></tr>
+        <tr class="roles"><th></th><th></th>${groups.map(([role, g]) => `<th colspan="${g.length}" class="g">${esc(role || 'Bez lomas')}</th>`).join('')}</tr>
+        <tr><th>Pasākums</th><th class="contact">Kontakti</th>${ms.map((m) => `<th class="${firstOfGroup.has(m.id) ? 'g' : ''}"><span>${esc(m.name)}</span></th>`).join('')}</tr>
       </thead>
       <tbody>${rows}</tbody>
-      <tfoot><tr><td><b>Tieku kopā</b></td><td></td>${ms.map((m) => `<td class="${firstOfGroup.has(m.id) ? 'g' : ''}"><b>${totals[m.id]}</b></td>`).join('')}<td class="g"></td></tr></tfoot>
     </table></div>
 `;
   root.onclick = null;
