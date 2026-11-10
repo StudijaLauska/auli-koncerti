@@ -287,7 +287,7 @@ table.grid td.cell.none.has-note { background: var(--maybe-bg); color: var(--may
 @media (max-width: 480px) { .member-fields { grid-template-columns: 1fr; } }
 
 /* Table: stripe + tint on the event cell by status */
-table.grid tr.st-confirmed td.ev { box-shadow: inset 6px 0 0 var(--yes); }
+table.grid tr.st-confirmed td.ev { box-shadow: inset 6px 0 0 var(--yes); background: var(--yes-bg); }
 table.grid tr.st-planning td.ev { box-shadow: inset 6px 0 0 var(--maybe); background: var(--maybe-bg); }
 table.grid tr.st-cancelled td.ev { box-shadow: inset 6px 0 0 var(--none); opacity: .7; }
 table.grid td.ev { padding-left: 16px; }
