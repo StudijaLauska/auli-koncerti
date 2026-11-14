@@ -13,6 +13,8 @@
   --no-bg: #f8e0dc;
   --maybe: #9a6b00;
   --maybe-bg: #fbefcf;
+  --reh: #2f68c4;
+  --reh-bg: #e1ebfa;
   --none: #8d847b;
   --none-bg: #eeeae4;
   --radius: 14px;
@@ -34,6 +36,8 @@
     --no-bg: #43231f;
     --maybe: #f2c45a;
     --maybe-bg: #3d3218;
+    --reh: #7fb0ff;
+    --reh-bg: #1c2b45;
     --none: #9a9086;
     --none-bg: #2c2723;
     --shadow: none;
@@ -116,7 +120,7 @@ a.btn { color: inherit; text-decoration: none; }
 .chip { font-size: .76rem; padding: 2px 8px; border-radius: 999px; font-weight: 600; white-space: nowrap; }
 .chip.confirmed { background: var(--yes-bg); color: var(--yes); }
 .chip.planning { background: var(--maybe-bg); color: var(--maybe); }
-.chip.kind { background: color-mix(in srgb, var(--accent) 16%, transparent); color: var(--accent); }
+.chip.kind { background: var(--reh-bg); color: var(--reh); }
 .chip.cancelled { background: var(--none-bg); color: var(--none); }
 .tally { font-size: .82rem; color: var(--muted); display: inline-flex; gap: 8px; }
 .tally .y { color: var(--yes); font-weight: 650; }
@@ -290,6 +294,12 @@ table.grid td.cell.none.has-note { background: var(--maybe-bg); color: var(--may
 /* Table: stripe + tint on the event cell by status */
 table.grid tr.st-confirmed td.ev { box-shadow: inset 6px 0 0 var(--yes); background: var(--yes-bg); }
 table.grid tr.st-planning td.ev { box-shadow: inset 6px 0 0 var(--maybe); background: var(--maybe-bg); }
+/* Rehearsals are blue (status still shows in the chip; planning ones keep the dashed outline). */
+.card.k-rehearsal { border-left-color: var(--reh); }
+.card.k-rehearsal.planning { border-color: var(--reh); }
+.card.k-rehearsal .datebox { background: var(--reh-bg); }
+.card.k-rehearsal .datebox .d { color: var(--reh); }
+table.grid tr.k-rehearsal td.ev { box-shadow: inset 6px 0 0 var(--reh); background: var(--reh-bg); }
 table.grid tr.st-cancelled td.ev { box-shadow: inset 6px 0 0 var(--none); opacity: .7; }
 table.grid td.ev { padding-left: 16px; }
 table.grid td.ev .chip { margin-left: 4px; font-size: .7rem; padding: 1px 7px; }
