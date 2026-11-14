@@ -467,6 +467,16 @@ async function saveAnswer(ev, a, note) {
   }
 }
 
+// Comments under the event name; identical comments are grouped: "Nav jābūt – NV, GI, GV".
+function notesHtml(ev, ms) {
+  const groups = new Map();
+  for (const m of ms) {
+    const note = answerOf(m.id, ev.id).note?.trim();
+    if (note) groups.set(note, [...(groups.get(note) || []), m]);
+  }
+  return [...groups].map(([note, who]) => `<div class="cmt">💬 ${esc(note)} – <b>${who.map((m) => esc(who.length > 1 ? initials(m) : m.name)).join(', ')}</b></div>`).join('');
+}
+
 function renderTable(root, evs) {
   const groups = byRole(state.data.members);
   const ms = groups.flatMap(([, g]) => g);
@@ -481,7 +491,7 @@ function renderTable(root, evs) {
       const title = `${m.name}: ${ANS[a].label}${ans.note ? ' – ' + ans.note : ''}`;
       return `<td class="cell ${a || 'none'}${ans.note ? ' has-note' : ''}${firstOfGroup.has(m.id) ? ' g' : ''}" title="${esc(title)}">${ANS[a].sym}${ans.note ? `<div class="cell-note">${esc(ans.note)}</div>` : ''}</td>`;
     }).join('');
-    return `<tr class="st-${ev.status} k-${kindOf(ev)}"><td class="ev"><div class="ev-date">${fmtShortRange(ev) || '–'}${ev.time ? ` <span class="ev-time">${esc(ev.time)}</span>` : ''}</div><div class="ev-chips"><span class="chip kind ${kindOf(ev)}">${KIND[kindOf(ev)]}</span><span class="chip ${ev.status}">${STATUS[ev.status]}</span></div><div class="ev-title">${esc(ev.title)}</div></td><td class="contact">${ev.contact ? linkify(ev.contact) : '<span class="sub">–</span>'}</td>${cells}</tr>`;
+    return `<tr class="st-${ev.status} k-${kindOf(ev)}"><td class="ev"><div class="ev-date">${fmtShortRange(ev) || '–'}${ev.time ? ` <span class="ev-time">${esc(ev.time)}</span>` : ''}</div><div class="ev-chips"><span class="chip kind ${kindOf(ev)}">${KIND[kindOf(ev)]}</span><span class="chip ${ev.status}">${STATUS[ev.status]}</span></div><div class="ev-title">${esc(ev.title)}</div>${notesHtml(ev, ms)}</td><td class="contact">${ev.contact ? linkify(ev.contact) : '<span class="sub">–</span>'}</td>${cells}</tr>`;
   }).join('');
   root.innerHTML = `
     <div class="table-scroll"><table class="grid">
