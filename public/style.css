@@ -305,6 +305,7 @@ table.grid tr.st-cancelled td.ev { box-shadow: inset 6px 0 0 var(--none); opacit
 table.grid td.ev { padding-left: 16px; }
 table.grid td.ev .chip { font-size: .7rem; padding: 0 6px; border: 1px solid currentColor; }
 table.grid td.ev .ev-date { font-size: .8rem; color: var(--muted); font-weight: 600; }
+table.grid td.ev .ev-time { margin-left: 6px; color: var(--text); }
 table.grid td.ev .ev-chips { display: flex; flex-wrap: wrap; gap: 4px; margin: 3px 0; }
 table.grid td.ev .ev-title { font-weight: 600; }
 

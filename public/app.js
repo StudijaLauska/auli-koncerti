@@ -58,6 +58,10 @@ function fmtLong(ev) {
 }
 
 // 6.02.2027 · 1.–2.05.2027 · 30.07.–2.08.2027 · 30.12.2027–2.01.2028
+// Sort by date, then by the first clock time ("9:00" → 09:00); events without a time go last that day.
+const evKey = (e) => { const m = String(e.time || '').match(/\b([01]?\d|2[0-3])[:.]([0-5]\d)\b/); return (e.date || '9999') + ' ' + (m ? m[1].padStart(2, '0') + ':' + m[2] : '99:99'); };
+const byDateTime = (a, b) => evKey(a).localeCompare(evKey(b));
+
 function fmtShortRange(ev) {
   const d = parseDate(ev.date);
   if (!d) return 'bez datuma';
@@ -139,6 +143,7 @@ function visibleEvents() {
     if (state.filter === 'upcoming') return !last || last >= today;
     return last && last < today;
   });
+  evs.sort(byDateTime);
   if (state.filter === 'past') evs.reverse();
   return evs;
 }
@@ -476,7 +481,7 @@ function renderTable(root, evs) {
       const title = `${m.name}: ${ANS[a].label}${ans.note ? ' – ' + ans.note : ''}`;
       return `<td class="cell ${a || 'none'}${ans.note ? ' has-note' : ''}${firstOfGroup.has(m.id) ? ' g' : ''}" title="${esc(title)}">${ANS[a].sym}${ans.note ? `<div class="cell-note">${esc(ans.note)}</div>` : ''}</td>`;
     }).join('');
-    return `<tr class="st-${ev.status} k-${kindOf(ev)}"><td class="ev"><div class="ev-date">${fmtShortRange(ev) || '–'}</div><div class="ev-chips"><span class="chip kind ${kindOf(ev)}">${KIND[kindOf(ev)]}</span><span class="chip ${ev.status}">${STATUS[ev.status]}</span></div><div class="ev-title">${esc(ev.title)}</div></td><td class="contact">${ev.contact ? linkify(ev.contact) : '<span class="sub">–</span>'}</td>${cells}</tr>`;
+    return `<tr class="st-${ev.status} k-${kindOf(ev)}"><td class="ev"><div class="ev-date">${fmtShortRange(ev) || '–'}${ev.time ? ` <span class="ev-time">${esc(ev.time)}</span>` : ''}</div><div class="ev-chips"><span class="chip kind ${kindOf(ev)}">${KIND[kindOf(ev)]}</span><span class="chip ${ev.status}">${STATUS[ev.status]}</span></div><div class="ev-title">${esc(ev.title)}</div></td><td class="contact">${ev.contact ? linkify(ev.contact) : '<span class="sub">–</span>'}</td>${cells}</tr>`;
   }).join('');
   root.innerHTML = `
     <div class="table-scroll"><table class="grid">
@@ -542,7 +547,7 @@ function openEditor(ev) {
       const { event } = await api('events', { method: 'POST', body: { event: body } });
       const i = state.data.events.findIndex((x) => x.id === event.id);
       if (i >= 0) state.data.events[i] = event; else state.data.events.push(event);
-      state.data.events.sort((a, b) => (a.date || '9999').localeCompare(b.date || '9999'));
+      state.data.events.sort(byDateTime);
       state.open.add(event.id);
       dlg.close();
       render();
