@@ -303,3 +303,9 @@ table.grid tr.k-rehearsal td.ev { box-shadow: inset 6px 0 0 var(--reh); backgrou
 table.grid tr.st-cancelled td.ev { box-shadow: inset 6px 0 0 var(--none); opacity: .7; }
 table.grid td.ev { padding-left: 16px; }
 table.grid td.ev .chip { margin-left: 4px; font-size: .7rem; padding: 1px 7px; }
+
+/* Phones: smaller segment buttons so "Gaidāmie/Pagājušie" and "Koncerti/Mēģinājumi" fit on one row. */
+@media (max-width: 480px) {
+  .toolbar { gap: 6px; }
+  .seg button { padding: 6px 9px; font-size: .84rem; }
+}
