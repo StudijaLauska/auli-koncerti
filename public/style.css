@@ -116,6 +116,7 @@ a.btn { color: inherit; text-decoration: none; }
 .chip { font-size: .76rem; padding: 2px 8px; border-radius: 999px; font-weight: 600; white-space: nowrap; }
 .chip.confirmed { background: var(--yes-bg); color: var(--yes); }
 .chip.planning { background: var(--maybe-bg); color: var(--maybe); }
+.chip.kind { background: color-mix(in srgb, var(--accent) 16%, transparent); color: var(--accent); }
 .chip.cancelled { background: var(--none-bg); color: var(--none); }
 .tally { font-size: .82rem; color: var(--muted); display: inline-flex; gap: 8px; }
 .tally .y { color: var(--yes); font-weight: 650; }

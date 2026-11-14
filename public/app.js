@@ -18,6 +18,7 @@ const state = {
   data: null,
   filter: LS.get('auli.filter') === 'past' ? 'past' : 'upcoming',
   mode: LS.get('auli.mode') || 'list',
+  kinds: (() => { const k = String(LS.get('auli.kinds') || 'concert,rehearsal').split(',').filter((x) => x === 'concert' || x === 'rehearsal'); return new Set(k.length ? k : ['concert', 'rehearsal']); })(),
   open: new Set(),
   noteOpen: new Set(),
 };
@@ -28,6 +29,8 @@ const ANS = {
   maybe: { label: 'Vēl nezinu', sym: '?' },
   '': { label: 'Nav atbildējis', sym: '·' },
 };
+const KIND = { concert: 'Koncerts', rehearsal: 'Mēģinājums' };
+const kindOf = (ev) => (ev.kind === 'rehearsal' ? 'rehearsal' : 'concert');
 const STATUS = { confirmed: 'Apstiprināts', planning: 'Organizējas', cancelled: 'Atcelts' };
 const MONTHS = ['janvāris', 'februāris', 'marts', 'aprīlis', 'maijs', 'jūnijs', 'jūlijs', 'augusts', 'septembris', 'oktobris', 'novembris', 'decembris'];
 const MON = ['janv', 'febr', 'marts', 'apr', 'maijs', 'jūn', 'jūl', 'aug', 'sept', 'okt', 'nov', 'dec'];
@@ -131,6 +134,7 @@ function tally(ev) {
 function visibleEvents() {
   const today = todayStr();
   const evs = state.data.events.filter((e) => {
+    if (!state.kinds.has(kindOf(e))) return false;
     const last = e.endDate || e.date;
     if (state.filter === 'upcoming') return !last || last >= today;
     return last && last < today;
@@ -243,6 +247,9 @@ function renderMain(app) {
         <div class="seg" id="filter">
           ${[['upcoming', 'Gaidāmie'], ['past', 'Pagājušie']].map(([k, l]) => `<button data-k="${k}" aria-pressed="${state.filter === k}">${l}</button>`).join('')}
         </div>
+        <div class="seg" id="kinds" title="Ko rādīt">
+          ${Object.entries({ concert: 'Koncerti', rehearsal: 'Mēģinājumi' }).map(([k, l]) => `<button data-k="${k}" aria-pressed="${state.kinds.has(k)}">${l}</button>`).join('')}
+        </div>
         <div class="seg" id="mode">
           ${[['list', 'Saraksts'], ['table', 'Tabula']].map(([k, l]) => `<button data-k="${k}" aria-pressed="${state.mode === k}">${l}</button>`).join('')}
         </div>
@@ -257,10 +264,21 @@ function renderMain(app) {
   $('#settings').onclick = openSettings;
   $('#add').onclick = () => openEditor();
   $('#filter').onclick = (e) => { const k = e.target.dataset.k; if (k) { state.filter = k; LS.set('auli.filter', k); render(); } };
+  $('#kinds').onclick = (e) => {
+    const k = e.target.dataset.k;
+    if (!k) return;
+    if (state.kinds.has(k)) {
+      // keep at least one on: switching off the only active one switches to the other
+      state.kinds.delete(k);
+      if (!state.kinds.size) state.kinds.add(k === 'concert' ? 'rehearsal' : 'concert');
+    } else state.kinds.add(k);
+    LS.set('auli.kinds', [...state.kinds].join(','));
+    render();
+  };
   $('#mode').onclick = (e) => { const k = e.target.dataset.k; if (k) { state.mode = k; LS.set('auli.mode', k); render(); } };
 
   const content = $('#content');
-  if (!evs.length) { content.innerHTML = '<p class="empty">Šeit vēl nav neviena pasākuma.</p>'; return; }
+  if (!evs.length) { content.innerHTML = `<p class="empty">Šeit vēl nav ${state.kinds.size === 1 ? (state.kinds.has('rehearsal') ? 'neviena mēģinājuma' : 'neviena koncerta') : 'neviena pasākuma'}.</p>`; return; }
   if (state.mode === 'table') return renderTable(content, evs);
 
   let html = '';
@@ -288,14 +306,14 @@ function cardHtml(ev) {
   const meta = [ev.time, ev.place].filter(Boolean).map(esc).join(' · ');
 
   return `
-  <article class="card ${ev.status}" data-id="${esc(ev.id)}">
+  <article class="card ${ev.status} k-${kindOf(ev)}" data-id="${esc(ev.id)}">
     <div class="card-main" data-act="toggle" role="button" tabindex="0" aria-expanded="${open}">
       <div class="datebox">${datebox}</div>
       <div>
         <h3 class="title">${esc(ev.title)}</h3>
         ${meta ? `<div class="meta">${meta}</div>` : ''}
         <div class="chips">
-          <span class="chip ${ev.status}">${STATUS[ev.status]}</span>
+          ${kindOf(ev) === 'rehearsal' ? '<span class="chip kind">Mēģinājums</span>' : ''}<span class="chip ${ev.status}">${STATUS[ev.status]}</span>
           <span class="tally" title="Tiek / netiek / nezina">
             <span class="y">✓ ${t.yes}</span>${t.no ? `<span class="n">✗ ${t.no}</span>` : ''}
             <span>no ${n}</span>
@@ -458,7 +476,7 @@ function renderTable(root, evs) {
       const title = `${m.name}: ${ANS[a].label}${ans.note ? ' – ' + ans.note : ''}`;
       return `<td class="cell ${a || 'none'}${ans.note ? ' has-note' : ''}${firstOfGroup.has(m.id) ? ' g' : ''}" title="${esc(title)}">${ANS[a].sym}${ans.note ? `<div class="cell-note">${esc(ans.note)}</div>` : ''}</td>`;
     }).join('');
-    return `<tr class="st-${ev.status}"><td class="ev"><div>${esc(ev.title)}</div><div class="sub">${fmtShortRange(ev)} <span class="chip ${ev.status}">${STATUS[ev.status]}</span></div></td><td class="contact">${ev.contact ? linkify(ev.contact) : '<span class="sub">–</span>'}</td>${cells}</tr>`;
+    return `<tr class="st-${ev.status} k-${kindOf(ev)}"><td class="ev"><div>${esc(ev.title)}</div><div class="sub">${fmtShortRange(ev)} ${kindOf(ev) === 'rehearsal' ? '<span class="chip kind">Mēģinājums</span>' : ''}<span class="chip ${ev.status}">${STATUS[ev.status]}</span></div></td><td class="contact">${ev.contact ? linkify(ev.contact) : '<span class="sub">–</span>'}</td>${cells}</tr>`;
   }).join('');
   root.innerHTML = `
     <div class="table-scroll"><table class="grid">
@@ -485,11 +503,12 @@ function dialog(html) {
 }
 
 function openEditor(ev) {
-  const e = ev || { status: 'planning' };
+  const e = ev || { status: 'planning', kind: state.kinds.size === 1 && state.kinds.has('rehearsal') ? 'rehearsal' : 'concert' };
   const dlg = dialog(`
     <form method="dialog">
       <h2>${ev ? 'Labot pasākumu' : 'Jauns pasākums'}</h2>
       <label class="f">Nosaukums *<input type="text" name="title" required value="${esc(e.title)}" placeholder="piem. Ražas svētki"></label>
+      <label class="f">Veids<select name="kind">${Object.entries(KIND).map(([k, l]) => `<option value="${k}" ${kindOf(e) === k ? 'selected' : ''}>${l}</option>`).join('')}</select></label>
       <div class="two">
         <label class="f">Datums<input type="date" name="date" value="${esc(e.date)}"></label>
         <label class="f">Beigu datums (ja vairākas dienas)<input type="date" name="endDate" value="${esc(e.endDate)}"></label>
