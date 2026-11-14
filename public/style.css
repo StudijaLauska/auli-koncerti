@@ -303,7 +303,10 @@ table.grid tr.st-planning td.ev { box-shadow: inset 6px 0 0 var(--maybe); backgr
 table.grid tr.k-rehearsal td.ev { box-shadow: inset 6px 0 0 var(--reh); background: var(--reh-bg); }
 table.grid tr.st-cancelled td.ev { box-shadow: inset 6px 0 0 var(--none); opacity: .7; }
 table.grid td.ev { padding-left: 16px; }
-table.grid td.ev .chip { margin-left: 4px; font-size: .7rem; padding: 1px 7px; }
+table.grid td.ev .chip { font-size: .7rem; padding: 1px 7px; }
+table.grid td.ev .ev-date { font-size: .8rem; color: var(--muted); font-weight: 600; }
+table.grid td.ev .ev-chips { display: flex; flex-wrap: wrap; gap: 4px; margin: 3px 0; }
+table.grid td.ev .ev-title { font-weight: 600; }
 
 /* Phones: smaller segment buttons so "Gaidāmie/Pagājušie" and "Koncerti/Mēģinājumi" fit on one row. */
 @media (max-width: 480px) {
