@@ -78,7 +78,7 @@ function toast(msg) {
   t.textContent = msg;
   t.classList.add('show');
   clearTimeout(toast.t);
-  toast.t = setTimeout(() => t.classList.remove('show'), 2600);
+  toast.t = setTimeout(() => t.classList.remove('show'), Math.max(2600, String(msg).length * 70));
 }
 
 async function api(path, opts = {}) {
@@ -492,7 +492,8 @@ function renderTable(root, evs) {
       <tbody>${rows}</tbody>
     </table></div>
 `;
-  root.onclick = null;
+  // tap a cell with a comment to read it
+  root.onclick = (e) => { const td = e.target.closest('td.has-note'); if (td) toast(td.title); };
   root.onkeydown = null;
 }
 
