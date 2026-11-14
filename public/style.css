@@ -282,8 +282,8 @@ table.grid td.contact a { color: var(--accent); }
 table.grid td.ev { white-space: normal; min-width: 200px; max-width: 260px; vertical-align: top; }
 table.grid .cmt { font-size: .78rem; color: var(--maybe); margin-top: 3px; line-height: 1.3; }
 table.grid .cmt b { color: var(--text); font-weight: 600; }
-table.grid td.has-note { cursor: pointer; }
-table.grid .cell-note { display: none;  font-size: .72rem; line-height: 1.25; color: var(--text); margin-top: 3px; text-align: left; overflow-wrap: anywhere; }
+table.grid td.has-note { white-space: normal; vertical-align: top; cursor: pointer; }
+table.grid .cell-note { font-size: .72rem; line-height: 1.25; color: var(--text); margin-top: 3px; text-align: left; overflow-wrap: anywhere; }
 table.grid td.cell.none.has-note { background: var(--maybe-bg); color: var(--maybe); }
 
 .member-row { align-items: flex-start; padding-bottom: 8px; border-bottom: 1px solid var(--line); margin-bottom: 8px; }
@@ -316,7 +316,10 @@ table.grid td.ev .ev-title { font-weight: 600; }
 }
 
 /* Narrow member columns: only the event column stays wide. Comments show as a corner mark; tap to read. */
-table.grid td.cell, table.grid thead tr:not(.roles) th:not(:first-child):not(.contact) { width: 28px; min-width: 28px; max-width: 28px; padding-left: 2px; padding-right: 2px; }
+table.grid td.cell:not(.has-note), table.grid thead tr:not(.roles) th:not(:first-child):not(.contact) { width: 28px; min-width: 28px; max-width: 28px; padding-left: 2px; padding-right: 2px; }
 table.grid td.contact, table.grid th.contact { padding-left: 6px; padding-right: 6px; }
 .table-scroll { width: fit-content; max-width: 100%; }
 table.grid tr.roles th { font-size: .66rem; letter-spacing: .02em; padding-left: 2px; padding-right: 2px; }
+/* Cells with a comment keep the comment text readable in place (only those columns get wider). */
+table.grid td.cell.has-note { min-width: 74px; max-width: 110px; padding: 4px 4px; }
+table.grid td.cell.has-note .cell-note { font-size: .7rem; }
