@@ -492,6 +492,9 @@ function renderTable(root, evs) {
       <tbody>${rows}</tbody>
     </table></div>
 `;
+  // second header row sits right under the role row
+  const rolesRow = root.querySelector('tr.roles');
+  if (rolesRow) root.querySelector('table.grid').style.setProperty('--roles-h', rolesRow.getBoundingClientRect().height + 'px');
   // tap a cell with a comment to read it
   root.onclick = (e) => { const td = e.target.closest('td.has-note'); if (td) toast(td.title); };
   root.onkeydown = null;

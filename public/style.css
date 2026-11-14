@@ -323,3 +323,8 @@ table.grid tr.roles th { font-size: .66rem; letter-spacing: .02em; padding-left:
 /* Cells with a comment keep the comment text readable in place (only those columns get wider). */
 table.grid td.cell.has-note { min-width: 74px; max-width: 110px; padding: 4px 4px; }
 table.grid td.cell.has-note .cell-note { font-size: .7rem; }
+/* Frozen header: the table scrolls inside its own box, so the role row and member names stay on top. */
+.table-scroll { overflow: auto; max-height: calc(100dvh - 90px); overscroll-behavior: contain; }
+table.grid thead th { position: sticky; top: 0; z-index: 2; background: var(--surface); }
+table.grid thead tr:not(.roles) th { top: var(--roles-h, 30px); box-shadow: 0 1px 0 var(--line); }
+table.grid thead th:first-child { left: 0; z-index: 3; }
