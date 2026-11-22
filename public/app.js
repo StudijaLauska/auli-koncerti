@@ -115,6 +115,7 @@ async function load(quiet) {
     state.data = fresh;
     if (state.me && !state.data.members.some((m) => m.id === state.me)) { state.me = null; LS.set('auli.me', null); }
     render();
+    initPush();
   } catch (e) {
     if (!quiet) toast(e.message);
   }
@@ -262,8 +263,10 @@ function renderMain(app) {
         <button class="btn primary" id="add">${ICON.plus}<span>Jauns pasākums</span></button>
       </div>
       ${pending ? `<div class="notice"><b>${pending}</b> ${pending === 1 ? 'gaidāmajam pasākumam' : 'gaidāmajiem pasākumiem'} vēl neesi atzīmējies.</div>` : ''}
+      ${pushBannerHtml()}
       <div id="content"></div>
     </main>`;
+  bindPushBanner(app);
 
   $('#who').onclick = () => { state.me = null; LS.set('auli.me', null); render(); };
   $('#settings').onclick = openSettings;
@@ -548,7 +551,7 @@ function openEditor(ev) {
     const btn = form.querySelector('.primary');
     btn.disabled = true;
     try {
-      const { event } = await api('events', { method: 'POST', body: { event: body } });
+      const { event } = await api('events', { method: 'POST', body: { event: body, pushEndpoint: PUSH.sub?.endpoint || '' } });
       const i = state.data.events.findIndex((x) => x.id === event.id);
       if (i >= 0) state.data.events[i] = event; else state.data.events.push(event);
       state.data.events.sort(byDateTime);
@@ -573,6 +576,9 @@ function openSettings() {
         <button type="button" class="btn" id="madd">+ Pievienot</button>
         <button type="button" class="btn primary" id="msave">Saglabāt sarakstu</button>
       </div>
+      <hr>
+      <h3 style="margin:0 0 8px;font-size:1rem">Paziņojumi</h3>
+      <div id="pushbox">${pushSettingsHtml()}</div>
       <hr>
       <h3 style="margin:0 0 8px;font-size:1rem">Dati</h3>
       <p class="meta" style="margin:0 0 10px">Rezerves kopija ir JSON fails ar visiem pasākumiem un atbildēm. Importējot fails aizvieto visus esošos datus.</p>
@@ -635,8 +641,121 @@ function openSettings() {
       toast('Dati importēti');
     } catch (err) { toast('Imports neizdevās: ' + err.message); }
   };
+  const bindPushBox = () => {
+    const box = $('#pushbox', dlg);
+    box.innerHTML = pushSettingsHtml();
+    $('#push-on', box)?.addEventListener('click', async () => { await enablePush(); bindPushBox(); });
+    $('#push-off', box)?.addEventListener('click', async () => { await disablePush(); bindPushBox(); });
+    $('#push-test', box)?.addEventListener('click', testPush);
+  };
+  bindPushBox();
+  dlg.addEventListener('close', () => { if (state.data) render(); });
   $('#logout', dlg)?.addEventListener('click', () => { dlg.close(); logout(); });
   $('#close', dlg).onclick = () => dlg.close();
+}
+
+/* ---------- push notifications ---------- */
+// iOS (16.4+) allows Web Push only in the app added to the home screen, not in a Safari tab.
+const IS_IOS = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const IS_STANDALONE = (() => { try { return matchMedia('(display-mode: standalone)').matches || navigator.standalone === true; } catch { return false; } })();
+const PUSH = { key: null, sub: null, inited: false, busy: false };
+const pushApiOk = () => 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+
+// 'off' (server has no keys) | 'ios-install' | 'unsupported' | 'denied' | 'on' | 'available' | 'loading'
+function pushStatus() {
+  if (PUSH.key === null) return 'loading';
+  if (!PUSH.key) return 'off';
+  if (IS_IOS && !IS_STANDALONE) return 'ios-install';
+  if (!pushApiOk()) return 'unsupported';
+  if (PUSH.sub) return 'on';
+  if (Notification.permission === 'denied') return 'denied';
+  return 'available';
+}
+
+function b64urlToBytes(s) {
+  const b = atob((s + '='.repeat((4 - (s.length % 4)) % 4)).replace(/-/g, '+').replace(/_/g, '/'));
+  return Uint8Array.from(b, (c) => c.charCodeAt(0));
+}
+
+async function initPush() {
+  if (PUSH.inited) return;
+  PUSH.inited = true;
+  try { PUSH.key = (await api('push/key')).publicKey || ''; } catch { PUSH.key = ''; }
+  if (PUSH.key && pushApiOk()) {
+    try {
+      const reg = await navigator.serviceWorker.register('/sw.js');
+      PUSH.sub = await reg.pushManager.getSubscription();
+      // Re-register on every start: keeps the name up to date and recovers if the server forgot it.
+      if (PUSH.sub) api('push/subscribe', { method: 'POST', body: { subscription: PUSH.sub.toJSON(), memberId: state.me } }).catch(() => {});
+    } catch (e) { console.warn('Service worker', e); }
+  }
+  if (!document.querySelector('dialog')) render();
+}
+
+async function enablePush() {
+  if (PUSH.busy) return;
+  PUSH.busy = true;
+  try {
+    // Ask first, straight from the tap: iOS refuses the prompt if anything is awaited before it.
+    const perm = await Notification.requestPermission();
+    if (perm !== 'granted') { toast(perm === 'denied' ? 'Paziņojumi ir bloķēti. Atļauj tos pārlūka vai telefona iestatījumos.' : 'Paziņojumi netika ieslēgti'); return false; }
+    const reg = (await navigator.serviceWorker.getRegistration('/')) || (await navigator.serviceWorker.register('/sw.js'));
+    await navigator.serviceWorker.ready;
+    const sub = (await reg.pushManager.getSubscription()) || (await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64urlToBytes(PUSH.key) }));
+    await api('push/subscribe', { method: 'POST', body: { subscription: sub.toJSON(), memberId: state.me } });
+    PUSH.sub = sub;
+    toast('Paziņojumi ieslēgti šajā ierīcē');
+    return true;
+  } catch (e) {
+    toast('Neizdevās ieslēgt paziņojumus: ' + e.message);
+    return false;
+  } finally { PUSH.busy = false; }
+}
+
+async function disablePush() {
+  const sub = PUSH.sub;
+  if (!sub) return;
+  try { await api('push/unsubscribe', { method: 'POST', body: { endpoint: sub.endpoint } }); } catch {}
+  try { await sub.unsubscribe(); } catch {}
+  PUSH.sub = null;
+  toast('Paziņojumi izslēgti šajā ierīcē');
+}
+
+async function testPush() {
+  try { await api('push/test', { method: 'POST', body: { endpoint: PUSH.sub?.endpoint } }); toast('Testa paziņojums nosūtīts'); }
+  catch (e) { toast(e.message); }
+}
+
+const IOS_HINT = 'iPhone paziņojumi strādā tikai no sākuma ekrāna: Safari spied <b>Kopīgot</b> (kvadrāts ar bultiņu) → <b>Pievienot sākuma ekrānam</b>, tad atver „Koncerti” no sākuma ekrāna un ieslēdz paziņojumus.';
+
+// One-time banner on the main screen; can be hidden, the same controls stay in Iestatījumi.
+function pushBannerHtml() {
+  if (LS.get('auli.pushHint') === 'hidden') return '';
+  const st = pushStatus();
+  if (st === 'available') return `<div class="notice push-notice"><span>🔔 Saņem paziņojumu, kad pievienots jauns pasākums vai tas tiek apstiprināts vai atcelts.</span><span class="push-actions"><button class="btn primary" id="push-on">Ieslēgt paziņojumus</button><button class="btn" id="push-hide">Vēlāk</button></span></div>`;
+  if (st === 'ios-install') return `<div class="notice push-notice"><span>🔔 ${IOS_HINT}</span><span class="push-actions"><button class="btn" id="push-hide">Sapratu</button></span></div>`;
+  return '';
+}
+
+function bindPushBanner(root) {
+  $('#push-on', root)?.addEventListener('click', async () => { if (await enablePush()) render(); else render(); });
+  $('#push-hide', root)?.addEventListener('click', () => { LS.set('auli.pushHint', 'hidden'); render(); });
+}
+
+function pushSettingsHtml() {
+  const st = pushStatus();
+  const text = {
+    loading: 'Pārbauda…',
+    off: 'Paziņojumi vēl nav ieslēgti serverī.',
+    'ios-install': IOS_HINT,
+    unsupported: 'Šis pārlūks neatbalsta paziņojumus. Pamēģini Chrome, Edge, Firefox vai Safari.',
+    denied: 'Paziņojumi šajā ierīcē ir bloķēti. Atļauj tos pārlūka vai telefona iestatījumos un pārlādē lapu.',
+    on: 'Ieslēgti šajā ierīcē. Saņemsi paziņojumu, kad pievienots jauns pasākums vai tas tiek apstiprināts vai atcelts.',
+    available: 'Saņem paziņojumu šajā ierīcē, kad pievienots jauns pasākums vai tas tiek apstiprināts vai atcelts.',
+  }[st];
+  const btns = st === 'available' ? '<button type="button" class="btn primary" id="push-on">Ieslēgt paziņojumus</button>'
+    : st === 'on' ? '<button type="button" class="btn" id="push-test">Testa paziņojums</button><button type="button" class="btn danger" id="push-off">Izslēgt</button>' : '';
+  return `<p class="meta" style="margin:0 0 10px">${text}</p>${btns ? `<div class="dlg-actions" style="justify-content:flex-start">${btns}</div>` : ''}`;
 }
 
 /* ---------- keep fresh ---------- */

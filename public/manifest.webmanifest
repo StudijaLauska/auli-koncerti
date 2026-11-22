@@ -1,4 +1,5 @@
 {
+  "id": "/",
   "name": "Auļu koncerti",
   "short_name": "Koncerti",
   "start_url": "/",
@@ -16,5 +17,7 @@
       "sizes": "180x180",
       "type": "image/png"
     }
-  ]
+  ],
+  "scope": "/",
+  "lang": "lv"
 }

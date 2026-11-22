@@ -16,8 +16,8 @@ const store = {
   async delete(k) { delete db[k]; await save(); },
   async list({ prefix = '' } = {}) { return { blobs: Object.keys(db).filter((k) => k.startsWith(prefix)).map((key) => ({ key })) }; },
 };
-const env = { BAND_PASSWORD: process.env.BAND_PASSWORD || '' };
-const types = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml', '.webmanifest': 'application/manifest+json', '.png': 'image/png' };
+const env = { BAND_PASSWORD: process.env.BAND_PASSWORD || '', VAPID_PUBLIC_KEY: process.env.VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY: process.env.VAPID_PRIVATE_KEY, VAPID_SUBJECT: process.env.VAPID_SUBJECT };
+const types = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml', '.webmanifest': 'application/manifest+json', '.png': 'image/png', '.mjs': 'text/javascript' };
 
 http.createServer(async (req, res) => {
   const url = new URL(req.url, 'http://localhost');

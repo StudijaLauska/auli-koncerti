@@ -328,3 +328,8 @@ table.grid td.cell.has-note .cell-note { font-size: .7rem; }
 table.grid thead th { position: sticky; top: 0; z-index: 2; background: var(--surface); }
 table.grid thead tr:not(.roles) th { top: var(--roles-h, 30px); box-shadow: 0 1px 0 var(--line); }
 table.grid thead th:first-child { left: 0; z-index: 3; }
+
+/* push notifications banner */
+.push-notice { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; }
+.push-notice > span:first-child { flex: 1 1 260px; }
+.push-actions { display: flex; gap: 8px; flex-wrap: wrap; }

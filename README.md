@@ -38,3 +38,21 @@ Pēc mainīgo maiņas: Deploys → Trigger deploy. Lai nepagaidītu līdz pirmdi
 Lapā → Iestatījumi ievadi dalībnieku e-pastus.
 
 Bez šiem mainīgajiem funkcija neko nesūta.
+
+## Push paziņojumi
+
+Lapa var sūtīt paziņojumus uz telefonu vai datoru, kad:
+- pievienots jauns pasākums;
+- pasākuma statuss mainās no **Organizējas** uz **Apstiprināts**;
+- pasākums tiek **Atcelts** (gan no Organizējas, gan no Apstiprināts).
+
+Paziņojumu nesaņem ierīce, no kuras izmaiņa veikta. Katrs ieslēdz paziņojumus pats: lapā parādās poga **Ieslēgt paziņojumus** (tā ir arī Iestatījumos, kur var arī nosūtīt testa paziņojumu vai izslēgt).
+- **iPhone/iPad** (iOS 16.4+): tikai no sākuma ekrāna. Safari → Kopīgot → Pievienot sākuma ekrānam, tad atver lapu no sākuma ekrāna un ieslēdz paziņojumus. Safari cilnē lapa rāda šo norādi pogas vietā.
+- **Android, dators**: strādā tieši pārlūkā (Chrome, Edge, Firefox, Safari).
+
+Iestatīšana (vienreiz, bez maksas, papildu servisi nav vajadzīgi):
+1. Uzģenerē atslēgu pāri: `npx web-push generate-vapid-keys`
+2. Netlify → Site configuration → Environment variables: `VAPID_PUBLIC_KEY` = Public Key, `VAPID_PRIVATE_KEY` = Private Key (atzīmē "Contains secret values"). Neobligāti `VAPID_SUBJECT` = `mailto:kontakta@epasts.lv`.
+3. Deploys → Trigger deploy.
+
+Bez šiem mainīgajiem paziņojumu poga netiek rādīta un nekas netiek sūtīts. Abonementi glabājas Netlify Blobs (`push/…`), tie neparādās datu kopijā un imports tos neizdzēš. Ja atslēgas nomaina, visiem paziņojumi jāieslēdz no jauna.

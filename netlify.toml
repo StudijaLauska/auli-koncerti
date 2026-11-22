@@ -9,3 +9,9 @@
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "same-origin"
     X-Robots-Tag = "noindex"
+
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "no-cache"
+    Service-Worker-Allowed = "/"
