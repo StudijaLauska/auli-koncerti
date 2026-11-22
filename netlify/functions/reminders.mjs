@@ -1,4 +1,5 @@
-// Every Monday morning (Riga time) e-mail each member a list of upcoming events they haven't answered.
+// Every Monday morning (Riga time) e-mail each member a list of upcoming events they haven't answered,
+// plus events whose status changed in the past week (members who answered everything get only those).
 // Sending, whichever is configured (Gmail wins if both are):
 //   Gmail:  GMAIL_USER (e.g. aullietnotranss@gmail.com) + GMAIL_APP_PASSWORD (Google "App password", needs 2-step verification)
 //   Resend: RESEND_API_KEY + REMINDER_FROM (e.g. "Auļi <info@auli.lv>", a domain verified in Resend)
@@ -7,7 +8,7 @@
 import { getStore } from '@netlify/blobs';
 import nodemailer from 'nodemailer';
 import { loadAll } from '../../lib/api.mjs';
-import { buildReminders, reminderHtml } from '../../lib/reminders.mjs';
+import { buildReminders, reminderHtml, reminderSubject } from '../../lib/reminders.mjs';
 
 function makeSender(env) {
   const gmailUser = env('GMAIL_USER');
@@ -52,16 +53,15 @@ export default async () => {
     console.log('Nav ne REMINDER_ONLY, ne REMINDER_ALL=1, tāpēc nekas netiek sūtīts. Testam: REMINDER_ONLY=tavs@epasts.lv; visiem: REMINDER_ALL=1');
     return;
   }
-  if (!reminders.length) console.log('Nevienam nav neatzīmētu pasākumu, nekas netiek sūtīts');
+  if (!reminders.length) console.log('Nevienam nav neatzīmētu pasākumu un nedēļā nav statusa izmaiņu, nekas netiek sūtīts');
   for (const r of reminders) {
-    const n = r.events.length;
     const status = await send({
       to: r.member.email,
-      subject: `Auļi: atzīmējies ${n} ${n === 1 ? 'pasākumam' : 'pasākumiem'}`,
+      subject: reminderSubject(r),
       text: r.text,
       html: reminderHtml(r),
     });
-    console.log(r.member.name, r.member.email, n, status);
+    console.log(r.member.name, r.member.email, r.events.length, r.changes.length, status);
   }
 };
 
