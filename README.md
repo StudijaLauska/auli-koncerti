@@ -43,7 +43,8 @@ Bez šiem mainīgajiem funkcija neko nesūta.
 
 Lapa var sūtīt paziņojumus uz telefonu vai datoru, kad:
 - pievienots jauns pasākums;
-- pasākuma statuss mainās no **Organizējas** uz **Apstiprināts** vai **Atcelts**.
+- pasākuma statuss mainās no **Organizējas** uz **Apstiprināts**;
+- pasākums tiek **Atcelts** (gan no Organizējas, gan no Apstiprināts).
 
 Paziņojumu nesaņem ierīce, no kuras izmaiņa veikta. Katrs ieslēdz paziņojumus pats: lapā parādās poga **Ieslēgt paziņojumus** (tā ir arī Iestatījumos, kur var arī nosūtīt testa paziņojumu vai izslēgt).
 - **iPhone/iPad** (iOS 16.4+): tikai no sākuma ekrāna. Safari → Kopīgot → Pievienot sākuma ekrānam, tad atver lapu no sākuma ekrāna un ieslēdz paziņojumus. Safari cilnē lapa rāda šo norādi pogas vietā.
