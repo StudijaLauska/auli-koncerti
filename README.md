@@ -21,7 +21,7 @@ npm run dev   # http://localhost:8888 (ar paroli: BAND_PASSWORD=test npm run dev
 
 ## E-pasta atgādinājumi
 
-Katru pirmdienu ap 9:00–10:00 (Rīgas laiks) `netlify/functions/reminders.mjs` nosūta katram dalībniekam, kam iestatījumos ir e-pasts, vienu e-pastu ar visiem gaidāmajiem pasākumiem, kuriem viņš vēl nav atbildējis (ne Tieku/Netieku, ne komentārs). Ja viss atzīmēts, e-pasts netiek sūtīts. E-pastā ir personīga saite `/?me=<id>`, kas atver lapu viņa vārdā.
+Katru pirmdienu ap 9:00–10:00 (Rīgas laiks) `netlify/functions/reminders.mjs` nosūta katram dalībniekam, kam iestatījumos ir e-pasts, vienu e-pastu ar visiem gaidāmajiem pasākumiem, kuriem viņš vēl nav atbildējis (ne Tieku/Netieku, ne komentārs). E-pastā ir arī sadaļa **Šonedēļ mainījies statuss** ar gaidāmajiem pasākumiem, kuru statuss pēdējās 7 dienās mainīts (piem. Organizējas → Apstiprināts). Kas atzīmējies visos pasākumos, saņem e-pastu tikai ar statusa izmaiņām; ja nav ne neatzīmētu pasākumu, ne izmaiņu, e-pasts netiek sūtīts. E-pastā ir personīga saite `/?me=<id>`, kas atver lapu viņa vārdā.
 
 Sūtīšana: ir divi varianti, der viens no tiem (ja iestatīti abi, izmanto Gmail).
 
