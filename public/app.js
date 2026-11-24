@@ -125,14 +125,21 @@ async function load(quiet) {
 function answerOf(memberId, eventId) {
   return state.data.answers[memberId]?.[eventId] || { a: '' };
 }
+// Answered = Tieku/Netieku, or at least a comment (same rule as the e-mail reminders).
+function isAnswered(ans) {
+  return ans.a === 'yes' || ans.a === 'no' || !!ans.note?.trim();
+}
+// Upcoming, not cancelled events the current member hasn't answered.
+function pendingCount() {
+  return state.data.events.filter((e) => (e.endDate || e.date || '9999') >= todayStr() && e.status !== 'cancelled' && !isAnswered(answerOf(state.me, e.id))).length;
+}
 function tally(ev) {
   const t = { yes: 0, no: 0, maybe: 0, '': 0, notes: 0, missing: 0 };
   for (const m of state.data.members) {
     const ans = answerOf(m.id, ev.id);
     t[ans.a || '']++;
     if (ans.note) t.notes++;
-    // A comment counts as an answer (same rule as the e-mail reminders).
-    if (ans.a !== 'yes' && ans.a !== 'no' && !ans.note) t.missing++;
+    if (!isAnswered(ans)) t.missing++;
   }
   return t;
 }
@@ -240,7 +247,7 @@ const ICON = {
 function renderMain(app) {
   const me = state.data.members.find((m) => m.id === state.me);
   const evs = visibleEvents();
-  const pending = state.data.events.filter((e) => (e.endDate || e.date || '9999') >= todayStr() && e.status !== 'cancelled' && !['yes', 'no'].includes(answerOf(state.me, e.id).a)).length;
+  const pending = pendingCount();
 
   app.innerHTML = `
     <header class="top"><div class="wrap ${state.mode === 'table' ? 'wide' : ''}">
@@ -450,7 +457,7 @@ function rerenderCard(card, ev) {
   tmp.innerHTML = cardHtml(ev);
   card.replaceWith(tmp.firstElementChild);
   // refresh the "not answered" notice without losing scroll position
-  const pending = state.data.events.filter((x) => (x.endDate || x.date || '9999') >= todayStr() && x.status !== 'cancelled' && !['yes', 'no'].includes(answerOf(state.me, x.id).a)).length;
+  const pending = pendingCount();
   const n = $('.notice');
   if (!pending && n) n.remove();
   else if (n) n.innerHTML = `<b>${pending}</b> ${pending === 1 ? 'gaidāmajam pasākumam' : 'gaidāmajiem pasākumiem'} vēl neesi atzīmējies.`;
