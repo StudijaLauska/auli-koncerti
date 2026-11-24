@@ -11,7 +11,12 @@ let db = {};
 try { db = JSON.parse(await fs.readFile(dbFile, 'utf8')); } catch {}
 const save = () => fs.writeFile(dbFile, JSON.stringify(db, null, 1));
 const store = {
-  async get(k) { return k in db ? structuredClone(db[k]) : null; },
+  async get(k, { type } = {}) {
+    if (!(k in db)) return null;
+    if (type === 'arrayBuffer') { const b = Buffer.from(db[k].$bin, 'base64'); return b.buffer.slice(b.byteOffset, b.byteOffset + b.length); }
+    return structuredClone(db[k]);
+  },
+  async set(k, v) { db[k] = { $bin: Buffer.from(v).toString('base64') }; await save(); },
   async setJSON(k, v) { db[k] = structuredClone(v); await save(); },
   async delete(k) { delete db[k]; await save(); },
   async list({ prefix = '' } = {}) { return { blobs: Object.keys(db).filter((k) => k.startsWith(prefix)).map((key) => ({ key })) }; },
@@ -26,7 +31,7 @@ http.createServer(async (req, res) => {
     for await (const c of req) chunks.push(c);
     const r = await handle(new Request(url, { method: req.method, headers: req.headers, body: chunks.length ? Buffer.concat(chunks) : undefined }), store, env);
     res.writeHead(r.status, Object.fromEntries(r.headers));
-    return res.end(await r.text());
+    return res.end(Buffer.from(await r.arrayBuffer()));
   }
   const file = path.join(root, 'public', url.pathname === '/' ? 'index.html' : url.pathname);
   try {

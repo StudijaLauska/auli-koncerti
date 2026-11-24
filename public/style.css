@@ -158,6 +158,16 @@ a.btn { color: inherit; text-decoration: none; }
 .row-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 .cal-actions { align-items: center; margin: 12px 0 14px; }
 .cal-label { color: var(--muted); font-size: .9rem; width: 100%; }
+.setlist { margin: 0 0 14px; display: grid; gap: 8px; }
+.setlist.empty { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.sl-head { display: flex; align-items: baseline; gap: 8px; min-width: 0; font-size: .92rem; }
+.sl-name { color: var(--accent); font-weight: 600; overflow-wrap: anywhere; }
+.sl-size { color: var(--muted); font-size: .82rem; flex: none; }
+.sl-view { display: grid; gap: 8px; max-height: 70vh; overflow: auto; border-radius: 10px; }
+.sl-view:empty { display: none; }
+.sl-view canvas { display: block; width: 100%; max-width: 560px; height: auto; background: #fff; border: 1px solid var(--line); border-radius: 10px; }
+.sl-view .meta { margin: 0; }
+.sl-chip { font-size: .8rem; font-weight: 600; color: var(--accent); }
 .note-input { display: flex; gap: 6px; margin: 0 14px 14px; }
 .note-input input { flex: 1; min-width: 0; }
 .empty { text-align: center; color: var(--muted); padding: 3rem 1rem; }

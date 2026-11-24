@@ -306,6 +306,7 @@ function renderMain(app) {
   }
   content.innerHTML = html;
   bindCards(content);
+  mountSetlists(content);
 }
 
 function cardHtml(ev) {
@@ -333,6 +334,7 @@ function cardHtml(ev) {
             <span class="y">✓ ${t.yes}</span>${t.no ? `<span class="n">✗ ${t.no}</span>` : ''}
             <span>no ${n}</span>
           </span>
+          ${ev.setlist ? '<span class="sl-chip">Setliste</span>' : ''}
           ${t.notes ? `<span class="q">${t.notes} ${plural(t.notes, 'komentārs', 'komentāri')}</span>` : ''}
           ${t.missing && ev.status !== 'cancelled' ? `<span class="missing">${t.missing} nav atbildējuši</span>` : ''}
         </div>
@@ -356,6 +358,108 @@ function noteHtml(mine) {
     </div>`;
 }
 
+const setlistLink = (ev, dl) => esc(`/api/setlist/${encodeURIComponent(ev.id)}?v=${encodeURIComponent(ev.setlist?.at || '')}${dl ? '&dl=1' : ''}${state.token ? '&t=' + encodeURIComponent(state.token) : ''}`);
+const fmtSize = (b) => (b >= 1e6 ? (b / 1048576).toFixed(1).replace('.', ',') + ' MB' : Math.max(1, Math.round(b / 1024)) + ' KB');
+
+// Concerts get a setlist block: PDF preview + Lejupielādēt for everyone, Aizstāt/Noņemt to manage it.
+function setlistHtml(ev) {
+  if (kindOf(ev) !== 'concert') return '';
+  const s = ev.setlist;
+  const input = '<input type="file" accept="application/pdf,.pdf" data-setlist-file hidden>';
+  if (!s) return `<div class="setlist empty"><span class="cal-label">Setliste</span><button class="btn" data-act="setlist-add">Pievienot setlisti (PDF)</button>${input}</div>`;
+  return `
+    <div class="setlist">
+      <span class="cal-label">Setliste</span>
+      <div class="sl-head">
+        <a class="sl-name" href="${setlistLink(ev)}" target="_blank" rel="noopener">${esc(s.name)}</a>
+        <span class="sl-size">${fmtSize(s.size)}</span>
+      </div>
+      <div class="sl-view" data-setlist-view="${esc(ev.id)}"></div>
+      <div class="row-actions">
+        <a class="btn primary" href="${setlistLink(ev, true)}" rel="noopener">Lejupielādēt</a>
+        <a class="btn" href="${setlistLink(ev)}" target="_blank" rel="noopener">Atvērt</a>
+        <button class="btn" data-act="setlist-add">Aizstāt</button>
+        <button class="btn danger" data-act="setlist-del">Noņemt</button>
+      </div>${input}
+    </div>`;
+}
+
+// PDF pages are drawn with pdf.js (loaded on first use), so the setlist shows on phones too,
+// where an <iframe> with a PDF often shows nothing. Drawn pages are kept and re-used on re-render.
+const PDFJS = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/';
+const setlistPages = new Map(); // `${id}|${at}` -> Promise<HTMLCanvasElement[]>
+let pdfjsLoading;
+function loadPdfJs() {
+  pdfjsLoading ||= new Promise((ok, fail) => {
+    const sc = document.createElement('script');
+    sc.src = PDFJS + 'build/pdf.min.js';
+    sc.onload = () => { window.pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS + 'build/pdf.worker.min.js'; ok(window.pdfjsLib); };
+    sc.onerror = () => { pdfjsLoading = null; fail(new Error('pdf.js')); };
+    document.head.append(sc);
+  });
+  return pdfjsLoading;
+}
+async function drawSetlist(ev, width) {
+  const lib = await loadPdfJs();
+  const res = await fetch(`/api/setlist/${encodeURIComponent(ev.id)}?v=${encodeURIComponent(ev.setlist.at)}`, { headers: state.token ? { authorization: 'Bearer ' + state.token } : {} });
+  if (!res.ok) throw new Error('fetch');
+  const pdf = await lib.getDocument({ data: new Uint8Array(await res.arrayBuffer()), cMapUrl: PDFJS + 'cmaps/', cMapPacked: true, standardFontDataUrl: PDFJS + 'standard_fonts/' }).promise;
+  const out = [];
+  for (let i = 1; i <= Math.min(pdf.numPages, 10); i++) {
+    const page = await pdf.getPage(i);
+    const scale = (width * (window.devicePixelRatio || 1)) / page.getViewport({ scale: 1 }).width;
+    const vp = page.getViewport({ scale });
+    const c = document.createElement('canvas');
+    c.width = Math.round(vp.width);
+    c.height = Math.round(vp.height);
+    await page.render({ canvasContext: c.getContext('2d'), viewport: vp }).promise;
+    out.push(c);
+  }
+  return out;
+}
+function mountSetlists(root) {
+  for (const box of root.querySelectorAll('[data-setlist-view]')) {
+    const ev = state.data.events.find((x) => x.id === box.dataset.setlistView);
+    if (!ev?.setlist) continue;
+    const key = ev.id + '|' + ev.setlist.at;
+    if (!setlistPages.has(key)) {
+      const p = drawSetlist(ev, Math.min(560, Math.max(320, box.clientWidth || 560)));
+      p.catch(() => setlistPages.delete(key));
+      setlistPages.set(key, p);
+      box.innerHTML = '<p class="meta">Ielādē setlisti…</p>';
+    }
+    setlistPages.get(key).then(
+      (pages) => { if (box.isConnected) box.replaceChildren(...pages); },
+      () => { if (box.isConnected) box.innerHTML = '<p class="meta">Priekšskatījumu neizdevās parādīt. Spied "Atvērt" vai "Lejupielādēt".</p>'; },
+    );
+  }
+}
+
+async function uploadSetlist(ev, file) {
+  if (!file) return;
+  if (!/\.pdf$/i.test(file.name) && file.type !== 'application/pdf') return toast('Var pievienot tikai PDF failu');
+  if (file.size > 4 * 1024 * 1024) return toast('Fails ir par lielu (līdz 4 MB)');
+  toast('Augšupielādē setlisti…');
+  try {
+    const res = await fetch('/api/setlist/' + encodeURIComponent(ev.id), {
+      method: 'PUT',
+      headers: { 'content-type': 'application/pdf', 'x-file-name': encodeURIComponent(file.name), ...(state.token ? { authorization: 'Bearer ' + state.token } : {}) },
+      body: file,
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || 'Kļūda (' + res.status + ')');
+    replaceEvent(data.event);
+    toast('Setliste pievienota');
+  } catch (err) { toast('Neizdevās pievienot: ' + err.message); }
+}
+
+function replaceEvent(event) {
+  const i = state.data.events.findIndex((x) => x.id === event.id);
+  if (i >= 0) state.data.events[i] = event;
+  const card = document.querySelector(`.card[data-id="${CSS.escape(event.id)}"]`);
+  if (card) rerenderCard(card, event); else render();
+}
+
 const calLink = (ev, kind) => esc(`/api/cal/${encodeURIComponent(ev.id)}${kind}${state.token ? '?t=' + encodeURIComponent(state.token) : ''}`);
 
 function detailsHtml(ev) {
@@ -373,6 +477,7 @@ function detailsHtml(ev) {
   return `
     <div class="details">
       <dl>${rows.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('')}</dl>
+      ${setlistHtml(ev)}
       ${ev.date ? `<div class="row-actions cal-actions">
         <span class="cal-label">Pievienot kalendāram:</span>
         <a class="btn" href="${calLink(ev, '.ics')}">Apple</a>
@@ -440,11 +545,25 @@ function bindCards(root) {
       state.noteOpen.delete(ev.id);
       rerenderCard(card, ev);
       toast(note ? 'Komentārs saglabāts' : 'Komentārs izdzēsts');
+    } else if (act === 'setlist-add') {
+      card.querySelector('[data-setlist-file]').click();
+    } else if (act === 'setlist-del') {
+      if (!confirmTwice(btn)) return;
+      try {
+        const { event } = await api('setlist/' + encodeURIComponent(ev.id), { method: 'DELETE' });
+        replaceEvent(event);
+        toast('Setliste noņemta');
+      } catch (err) { toast(err.message); }
     } else if (act === 'edit') {
       openEditor(ev);
     } else if (act === 'delete') {
       if (confirmTwice(btn)) await deleteEvent(ev);
     }
+  };
+  root.onchange = (e) => {
+    if (!e.target.matches('[data-setlist-file]')) return;
+    const ev = state.data.events.find((x) => x.id === e.target.closest('.card').dataset.id);
+    uploadSetlist(ev, e.target.files[0]);
   };
   root.onkeydown = (e) => {
     if (e.key === 'Enter' && e.target.matches('[data-note]')) { e.preventDefault(); e.target.closest('.card').querySelector('[data-act=note]').click(); return; }
@@ -455,7 +574,9 @@ function bindCards(root) {
 function rerenderCard(card, ev) {
   const tmp = document.createElement('div');
   tmp.innerHTML = cardHtml(ev);
-  card.replaceWith(tmp.firstElementChild);
+  const fresh = tmp.firstElementChild;
+  card.replaceWith(fresh);
+  mountSetlists(fresh);
   // refresh the "not answered" notice without losing scroll position
   const pending = pendingCount();
   const n = $('.notice');
